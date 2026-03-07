@@ -109,7 +109,8 @@ class SalonPayDB {
             const defaultSettings = {
                 cashDiscountRate: 10,      // 현금 할인율 (%)
                 pointEarnRate: 5,          // 적립률 (%)
-                birthdayCouponAmount: 10000 // 생일 쿠폰 금액
+                birthdayCouponAmount: 10000, // 생일 쿠폰 금액
+                cashTiers: [300000, 500000, 1000000] // 현금 결제 구간 (30만, 50만, 100만)
             };
             localStorage.setItem(this.KEYS.SETTINGS, JSON.stringify(defaultSettings));
         }
@@ -712,7 +713,8 @@ const SAMPLE_DATA = {
     settings: {
         cashDiscountRate: 10,
         pointEarnRate: 5,
-        birthdayCouponAmount: 10000
+        birthdayCouponAmount: 10000,
+        cashTiers: [300000, 500000, 1000000]
     }
 };
 

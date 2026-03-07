@@ -152,7 +152,9 @@
             <header class="app-header">
                 <button class="header-back">←</button>
                 <h1 class="header-title">관리자</h1>
-                <div class="header-action"></div>
+                <div class="header-action">
+                    <button class="settings-btn" onclick="openSettings()">⚙️</button>
+                </div>
             </header>
 
             <!-- 통계 그리드 -->
@@ -239,9 +241,9 @@
                     </div>
                 </div>
 
-                <!-- 결제 수단 비중 (파이 차트) -->
+                <!-- 현금 결제 구간별 비중 (파이 차트) -->
                 <div class="chart-section">
-                    <h3 class="chart-title">결제 수단 비중</h3>
+                    <h3 class="chart-title">현금 결제 구간별 비중</h3>
                     <div class="pie-chart-container">
                         <canvas id="payment-pie-chart"></canvas>
                         <div class="pie-legend" id="payment-legend"></div>
@@ -290,6 +292,30 @@
                 </div>
                 <div class="history-list" id="detail-history">
                     <!-- 동적으로 생성 -->
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== 설정 모달 ===== -->
+        <div id="settings-modal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>설정</h2>
+                    <button class="modal-close" onclick="closeSettings()">×</button>
+                </div>
+                <div class="modal-body">
+                    <div class="setting-group">
+                        <label class="setting-label">현금 결제 구간 설정</label>
+                        <p class="setting-desc">현금 결제 분석에 사용할 금액 구간을 설정하세요</p>
+                        <div class="tier-inputs" id="tier-inputs">
+                            <!-- 동적으로 생성 -->
+                        </div>
+                        <button class="btn-add-tier" onclick="addTierInput()">+ 구간 추가</button>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn-secondary" onclick="closeSettings()">취소</button>
+                    <button class="btn-primary" onclick="saveSettings()">저장</button>
                 </div>
             </div>
         </div>

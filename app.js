@@ -543,31 +543,63 @@ function renderServicePieChart() {
     `).join('');
 }
 
-// 결제 수단 파이 차트
+// 현금 결제 구간별 파이 차트
 function renderPaymentPieChart() {
     const canvas = document.getElementById('payment-pie-chart');
     if (!canvas) return;
 
     const ctx = canvas.getContext('2d');
     const visits = db.getAllVisits();
+    const settings = db.getSettings();
+    const tiers = settings.cashTiers || [300000, 500000, 1000000];
 
-    // 결제 수단별 집계
-    let cashTotal = 0, cardTotal = 0;
-    visits.forEach(visit => {
-        if (visit.paymentMethod === 'cash') {
-            cashTotal += visit.finalAmount;
+    // 현금 결제 건수별 구간 집계
+    const tierCounts = {};
+    const tierLabels = [];
+
+    // 구간 레이블 생성
+    tierLabels.push(`${formatCompactNumber(tiers[0])} 미만`);
+    for (let i = 0; i < tiers.length; i++) {
+        if (i < tiers.length - 1) {
+            tierLabels.push(`${formatCompactNumber(tiers[i])}~${formatCompactNumber(tiers[i+1])}`);
         } else {
-            cardTotal += visit.finalAmount;
+            tierLabels.push(`${formatCompactNumber(tiers[i])} 이상`);
+        }
+    }
+
+    // 초기화
+    tierLabels.forEach(label => tierCounts[label] = 0);
+
+    // 현금 결제만 집계
+    const cashVisits = visits.filter(v => v.paymentMethod === 'cash');
+    cashVisits.forEach(visit => {
+        const amount = visit.finalAmount;
+        if (amount < tiers[0]) {
+            tierCounts[tierLabels[0]]++;
+        } else if (amount >= tiers[tiers.length - 1]) {
+            tierCounts[tierLabels[tierLabels.length - 1]]++;
+        } else {
+            for (let i = 0; i < tiers.length - 1; i++) {
+                if (amount >= tiers[i] && amount < tiers[i + 1]) {
+                    tierCounts[tierLabels[i + 1]]++;
+                    break;
+                }
+            }
         }
     });
 
-    const total = cashTotal + cardTotal;
-    if (total === 0) return;
+    const colors = ['#FFD93D', '#F5A623', '#E8920D', '#D4780A'];
+    const data = tierLabels.map((label, i) => ({
+        name: label,
+        value: tierCounts[label],
+        color: colors[i % colors.length]
+    })).filter(d => d.value > 0);
 
-    const data = [
-        { name: '현금', value: cashTotal, color: '#34C759' },
-        { name: '카드', value: cardTotal, color: '#007AFF' }
-    ];
+    const total = data.reduce((sum, d) => sum + d.value, 0);
+    if (total === 0) {
+        document.getElementById('payment-legend').innerHTML = '<p style="color: #8E8E93;">현금 결제 내역이 없습니다.</p>';
+        return;
+    }
 
     // 캔버스 설정
     const dpr = window.devicePixelRatio || 1;
@@ -611,13 +643,10 @@ function renderPaymentPieChart() {
     ctx.fillStyle = '#000000';
     ctx.font = 'bold 14px -apple-system, sans-serif';
     ctx.textAlign = 'center';
-    ctx.fillText('결제', centerX, centerY - 5);
+    ctx.fillText('현금', centerX, centerY - 5);
     ctx.font = '12px -apple-system, sans-serif';
     ctx.fillStyle = '#8E8E93';
-    ctx.fillText('수단 비중', centerX, centerY + 12);
-
-    // 절감 수수료 계산 (카드 수수료 2.5%)
-    const savedFee = Math.round(cashTotal * 0.025);
+    ctx.fillText('구간별 비중', centerX, centerY + 12);
 
     // 범례
     document.getElementById('payment-legend').innerHTML = `
@@ -625,13 +654,13 @@ function renderPaymentPieChart() {
             <div class="pie-legend-item">
                 <span class="legend-color" style="background: ${d.color};"></span>
                 <span class="legend-label">${d.name}</span>
-                <span class="legend-value">${Math.round(d.value / total * 100)}%</span>
+                <span class="legend-value">${d.value}건 (${Math.round(d.value / total * 100)}%)</span>
             </div>
         `).join('')}
         <div class="pie-legend-item highlight">
-            <span class="legend-color" style="background: #FF9500;"></span>
-            <span class="legend-label">절감 수수료</span>
-            <span class="legend-value">${formatNumber(savedFee)}원</span>
+            <span class="legend-color" style="background: #F5A623;"></span>
+            <span class="legend-label">총 현금결제</span>
+            <span class="legend-value">${total}건</span>
         </div>
     `;
 }
@@ -748,7 +777,94 @@ function showToast(message) {
     }, 2500);
 }
 
+// ===== 설정 관련 함수 =====
+function openSettings() {
+    const modal = document.getElementById('settings-modal');
+    modal.classList.add('active');
+    loadTierInputs();
+}
+
+function closeSettings() {
+    const modal = document.getElementById('settings-modal');
+    modal.classList.remove('active');
+}
+
+function loadTierInputs() {
+    const container = document.getElementById('tier-inputs');
+    const settings = db.getSettings();
+    const tiers = settings.cashTiers || [300000, 500000, 1000000];
+
+    container.innerHTML = tiers.map((tier, i) => `
+        <div class="tier-input-row">
+            <input type="number" class="tier-value" value="${tier / 10000}" min="1" placeholder="금액">
+            <span class="tier-unit">만원</span>
+            <button class="btn-remove-tier" onclick="removeTierInput(this)" ${tiers.length <= 1 ? 'disabled style="opacity:0.5"' : ''}>−</button>
+        </div>
+    `).join('');
+}
+
+function addTierInput() {
+    const container = document.getElementById('tier-inputs');
+    const lastInput = container.querySelector('.tier-input-row:last-child .tier-value');
+    const lastValue = lastInput ? parseInt(lastInput.value) || 50 : 50;
+
+    const newRow = document.createElement('div');
+    newRow.className = 'tier-input-row';
+    newRow.innerHTML = `
+        <input type="number" class="tier-value" value="${lastValue + 20}" min="1" placeholder="금액">
+        <span class="tier-unit">만원</span>
+        <button class="btn-remove-tier" onclick="removeTierInput(this)">−</button>
+    `;
+    container.appendChild(newRow);
+    updateRemoveButtons();
+}
+
+function removeTierInput(btn) {
+    const container = document.getElementById('tier-inputs');
+    if (container.children.length > 1) {
+        btn.closest('.tier-input-row').remove();
+        updateRemoveButtons();
+    }
+}
+
+function updateRemoveButtons() {
+    const container = document.getElementById('tier-inputs');
+    const buttons = container.querySelectorAll('.btn-remove-tier');
+    buttons.forEach(btn => {
+        btn.disabled = container.children.length <= 1;
+        btn.style.opacity = container.children.length <= 1 ? '0.5' : '1';
+    });
+}
+
+function saveSettings() {
+    const inputs = document.querySelectorAll('#tier-inputs .tier-value');
+    const tiers = Array.from(inputs)
+        .map(input => parseInt(input.value) * 10000)
+        .filter(v => !isNaN(v) && v > 0)
+        .sort((a, b) => a - b);
+
+    if (tiers.length === 0) {
+        showToast('최소 1개 이상의 구간을 입력하세요');
+        return;
+    }
+
+    const settings = db.getSettings();
+    settings.cashTiers = tiers;
+    db.updateSettings(settings);
+
+    closeSettings();
+    showToast('설정이 저장되었습니다');
+
+    // 차트 새로고침
+    renderPaymentPieChart();
+}
+
 // ===== 전역 함수 노출 =====
 window.showScreen = showScreen;
 window.showCustomerDetail = showCustomerDetail;
 window.switchTab = switchTab;
+window.openSettings = openSettings;
+window.closeSettings = closeSettings;
+window.addTierInput = addTierInput;
+window.removeTierInput = removeTierInput;
+window.saveSettings = saveSettings;
