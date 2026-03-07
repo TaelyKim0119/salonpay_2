@@ -19,7 +19,7 @@
 const CONFIG = {
     // Google Cloud 프로젝트 설정
     // TODO: Google Cloud Console에서 발급받은 값으로 교체하세요
-    GOOGLE_CLIENT_ID: 'YOUR_CLIENT_ID.apps.googleusercontent.com',
+    GOOGLE_CLIENT_ID: '699843754832-sfe5lo7goujevf0iksek96io9jn614rl.apps.googleusercontent.com',
 
     // Google Sheets API 설정
     SCOPES: 'https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/userinfo.email',
