@@ -286,7 +286,7 @@ function loadBirthdayList() {
 
         return `
             <div class="birthday-card">
-                <div class="birthday-icon">${isToday ? '🎉' : '🎂'}</div>
+                <div class="birthday-icon"><img src="이미지/생일.png" alt="생일"></div>
                 <div class="birthday-info">
                     <div class="birthday-name">${customer.name}</div>
                     <div class="birthday-date">${month}월 ${day}일</div>
