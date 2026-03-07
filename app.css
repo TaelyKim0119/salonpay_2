@@ -141,7 +141,7 @@ h4 { font-size: 20px; font-weight: 600; letter-spacing: -0.2px; }
     align-items: center;
     padding: var(--space-xl);
     min-height: 100vh;
-    background: linear-gradient(180deg, #667eea 0%, #764ba2 100%);
+    background: #FFFFFF;
     position: relative;
 }
 
@@ -164,14 +164,14 @@ h4 { font-size: 20px; font-weight: 600; letter-spacing: -0.2px; }
 .main-logo h1 {
     font-size: 42px;
     font-weight: 700;
-    color: var(--ios-white);
+    color: var(--text-primary);
     margin-bottom: var(--space-sm);
     letter-spacing: -1px;
 }
 
 .main-logo p {
     font-size: 17px;
-    color: rgba(255, 255, 255, 0.8);
+    color: var(--text-tertiary);
     font-weight: 400;
 }
 
@@ -202,18 +202,18 @@ h4 { font-size: 20px; font-weight: 600; letter-spacing: -0.2px; }
 }
 
 .main-btn-customer {
-    background: rgba(255, 255, 255, 0.95);
-    box-shadow: var(--shadow-lg);
+    background: var(--ios-gray-6);
+    box-shadow: var(--shadow-sm);
 }
 
 .main-btn-admin {
-    background: rgba(255, 255, 255, 0.15);
-    border: 1px solid rgba(255, 255, 255, 0.3);
+    background: var(--ios-gray-6);
+    box-shadow: var(--shadow-sm);
 }
 
 .main-btn .btn-icon {
-    width: 64px;
-    height: 64px;
+    width: 90px;
+    height: 90px;
     border-radius: var(--radius-sm);
     display: flex;
     align-items: center;
@@ -256,13 +256,13 @@ h4 { font-size: 20px; font-weight: 600; letter-spacing: -0.2px; }
 .main-btn-admin .btn-title {
     font-size: 18px;
     font-weight: 600;
-    color: var(--ios-white);
+    color: var(--text-primary);
     margin-bottom: 2px;
 }
 
 .main-btn-admin .btn-subtitle {
     font-size: 14px;
-    color: rgba(255, 255, 255, 0.7);
+    color: var(--text-tertiary);
 }
 
 .main-btn .btn-arrow {
@@ -276,7 +276,7 @@ h4 { font-size: 20px; font-weight: 600; letter-spacing: -0.2px; }
 }
 
 .main-btn-admin .btn-arrow {
-    color: rgba(255, 255, 255, 0.6);
+    color: var(--text-tertiary);
 }
 
 /* =====================================================
@@ -460,6 +460,25 @@ h4 { font-size: 20px; font-weight: 600; letter-spacing: -0.2px; }
 .customer-dashboard {
     padding-bottom: var(--space-xl);
     background: var(--bg-primary);
+}
+
+/* Welcome Character Image */
+.welcome-character {
+    display: flex;
+    justify-content: center;
+    padding: var(--space-md) var(--space-md) 0;
+}
+
+.welcome-character img {
+    width: 120px;
+    height: 120px;
+    object-fit: contain;
+    animation: bounce 2s ease-in-out infinite;
+}
+
+@keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
 }
 
 .balance-card {
@@ -884,6 +903,25 @@ h4 { font-size: 20px; font-weight: 600; letter-spacing: -0.2px; }
     color: var(--text-tertiary);
 }
 
+/* Birthday Header with Character */
+.birthday-header {
+    display: flex;
+    justify-content: center;
+    padding: var(--space-lg) var(--space-md) var(--space-md);
+}
+
+.birthday-character {
+    width: 140px;
+    height: 140px;
+    object-fit: contain;
+    animation: celebrate 1.5s ease-in-out infinite;
+}
+
+@keyframes celebrate {
+    0%, 100% { transform: rotate(-5deg) scale(1); }
+    50% { transform: rotate(5deg) scale(1.05); }
+}
+
 /* Birthday List */
 .birthday-list {
     padding: 0 var(--space-md);
@@ -1129,14 +1167,14 @@ h4 { font-size: 20px; font-weight: 600; letter-spacing: -0.2px; }
     }
 
     .main-btn .btn-icon {
-        width: 100px;
-        height: 100px;
+        width: 140px;
+        height: 140px;
         margin-right: 0;
         margin-bottom: var(--space-md);
     }
 
     .main-logo .logo-image {
-        width: 160px;
+        width: 180px;
     }
 
     .main-btn-text {
@@ -1172,6 +1210,11 @@ h4 { font-size: 20px; font-weight: 600; letter-spacing: -0.2px; }
         padding: var(--space-lg);
     }
 
+    .welcome-character img {
+        width: 160px;
+        height: 160px;
+    }
+
     .balance-card {
         margin: 0 0 var(--space-lg) 0;
         padding: var(--space-xl);
@@ -1179,6 +1222,11 @@ h4 { font-size: 20px; font-weight: 600; letter-spacing: -0.2px; }
 
     .balance-card .balance-amount {
         font-size: 56px;
+    }
+
+    .birthday-character {
+        width: 180px;
+        height: 180px;
     }
 
     .info-cards {
