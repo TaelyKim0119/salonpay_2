@@ -17,16 +17,19 @@
 <body>
     <div class="app-container">
 
-        <!-- ===== 메인 화면 - iOS Style ===== -->
+        <!-- ===== 메인 화면 - iOS Style with Characters ===== -->
         <div id="main" class="screen main-screen active">
             <div class="main-logo">
+                <img src="이미지/logo.png" alt="살롱페이" class="logo-image">
                 <h1>살롱페이</h1>
                 <p>스마트한 미용실 적립금 관리</p>
             </div>
 
             <div class="main-buttons">
                 <button id="btn-customer" class="main-btn main-btn-customer">
-                    <div class="btn-icon">👤</div>
+                    <div class="btn-icon">
+                        <img src="이미지/customers.png" alt="고객">
+                    </div>
                     <div class="main-btn-text">
                         <div class="btn-title">고객</div>
                         <div class="btn-subtitle">적립금 조회 및 사용</div>
@@ -35,7 +38,9 @@
                 </button>
 
                 <button id="btn-admin" class="main-btn main-btn-admin">
-                    <div class="btn-icon">⚙️</div>
+                    <div class="btn-icon">
+                        <img src="이미지/관리자2.png" alt="관리자">
+                    </div>
                     <div class="main-btn-text">
                         <div class="btn-title">관리자</div>
                         <div class="btn-subtitle">고객 관리 및 통계</div>
@@ -89,12 +94,16 @@
             <!-- 정보 카드 -->
             <div class="info-cards">
                 <div class="info-card">
-                    <div class="card-icon">💰</div>
+                    <div class="card-icon">
+                        <img src="이미지/돈.png" alt="적립금">
+                    </div>
                     <div class="card-label">총 적립금</div>
                     <div class="card-value"><span id="customer-points-card">0</span> <span>P</span></div>
                 </div>
                 <div class="info-card">
-                    <div class="card-icon">🎫</div>
+                    <div class="card-icon">
+                        <img src="이미지/쿠폰.png" alt="쿠폰">
+                    </div>
                     <div class="card-label">사용 가능 쿠폰</div>
                     <div class="card-value"><span id="customer-coupons-count">0</span> <span>장</span></div>
                 </div>
