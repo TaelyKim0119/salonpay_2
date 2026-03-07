@@ -1056,6 +1056,102 @@ h4 { font-size: 20px; font-weight: 600; letter-spacing: -0.2px; }
     transition: width 0.5s ease;
 }
 
+/* ===== Chart Styles ===== */
+.chart-section {
+    margin: var(--space-lg) var(--space-md);
+    padding: var(--space-lg);
+    background: var(--bg-secondary);
+    border-radius: var(--radius-md);
+}
+
+.chart-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: var(--space-md);
+}
+
+.chart-container {
+    width: 100%;
+    position: relative;
+}
+
+.chart-container canvas {
+    width: 100% !important;
+}
+
+.chart-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-md);
+    margin-top: var(--space-md);
+    padding-top: var(--space-md);
+    border-top: 1px solid var(--ios-gray-5);
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+    font-size: 13px;
+    color: var(--text-secondary);
+}
+
+.legend-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+}
+
+.pie-chart-container {
+    display: flex;
+    align-items: center;
+    gap: var(--space-lg);
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.pie-chart-container canvas {
+    flex-shrink: 0;
+}
+
+.pie-legend {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+    min-width: 120px;
+}
+
+.pie-legend-item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    font-size: 13px;
+}
+
+.pie-legend-item .legend-color {
+    width: 12px;
+    height: 12px;
+    border-radius: 3px;
+    flex-shrink: 0;
+}
+
+.pie-legend-item .legend-label {
+    flex: 1;
+    color: var(--text-secondary);
+}
+
+.pie-legend-item .legend-value {
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.pie-legend-item.highlight {
+    margin-top: var(--space-sm);
+    padding-top: var(--space-sm);
+    border-top: 1px solid var(--ios-gray-5);
+}
+
 /* =====================================================
    CUSTOMER DETAIL - iOS Style
    ===================================================== */
@@ -1352,6 +1448,14 @@ h4 { font-size: 20px; font-weight: 600; letter-spacing: -0.2px; }
         display: grid;
         grid-template-columns: repeat(2, 1fr);
         gap: var(--space-md);
+    }
+
+    .chart-section {
+        margin: var(--space-lg) 0;
+    }
+
+    .pie-chart-container {
+        justify-content: flex-start;
     }
 
     /* Customer Detail - PC */

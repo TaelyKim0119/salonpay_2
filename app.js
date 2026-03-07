@@ -336,6 +336,320 @@ function loadAnalysisData(stats) {
             <div class="card-desc">방문 10회 이상 고객</div>
         </div>
     `;
+
+    // 차트 렌더링
+    setTimeout(() => {
+        renderRevenueChart();
+        renderServicePieChart();
+        renderPaymentPieChart();
+    }, 100);
+}
+
+// ===== 차트 렌더링 함수 =====
+
+// 월별 매출 시계열 차트
+function renderRevenueChart() {
+    const canvas = document.getElementById('revenue-chart');
+    if (!canvas) return;
+
+    const ctx = canvas.getContext('2d');
+    const visits = db.getAllVisits();
+
+    // 최근 12개월 데이터 집계
+    const monthlyData = {};
+    const today = new Date();
+
+    for (let i = 11; i >= 0; i--) {
+        const date = new Date(today.getFullYear(), today.getMonth() - i, 1);
+        const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+        monthlyData[key] = { revenue: 0, visits: 0, label: `${date.getMonth() + 1}월` };
+    }
+
+    visits.forEach(visit => {
+        const monthKey = visit.date.slice(0, 7);
+        if (monthlyData[monthKey]) {
+            monthlyData[monthKey].revenue += visit.finalAmount;
+            monthlyData[monthKey].visits += 1;
+        }
+    });
+
+    const data = Object.values(monthlyData);
+    const maxRevenue = Math.max(...data.map(d => d.revenue), 100000);
+
+    // 캔버스 크기 설정
+    const dpr = window.devicePixelRatio || 1;
+    const rect = canvas.parentElement.getBoundingClientRect();
+    canvas.width = rect.width * dpr;
+    canvas.height = 200 * dpr;
+    canvas.style.width = rect.width + 'px';
+    canvas.style.height = '200px';
+    ctx.scale(dpr, dpr);
+
+    const width = rect.width;
+    const height = 200;
+    const padding = { top: 20, right: 20, bottom: 40, left: 50 };
+    const chartWidth = width - padding.left - padding.right;
+    const chartHeight = height - padding.top - padding.bottom;
+
+    // 배경
+    ctx.fillStyle = '#FFFFFF';
+    ctx.fillRect(0, 0, width, height);
+
+    // 그리드 라인
+    ctx.strokeStyle = '#E5E5EA';
+    ctx.lineWidth = 1;
+    for (let i = 0; i <= 4; i++) {
+        const y = padding.top + (chartHeight / 4) * i;
+        ctx.beginPath();
+        ctx.moveTo(padding.left, y);
+        ctx.lineTo(width - padding.right, y);
+        ctx.stroke();
+    }
+
+    // 바 차트
+    const barWidth = chartWidth / data.length * 0.6;
+    const barGap = chartWidth / data.length * 0.4;
+
+    data.forEach((d, i) => {
+        const x = padding.left + (chartWidth / data.length) * i + barGap / 2;
+        const barHeight = (d.revenue / maxRevenue) * chartHeight;
+        const y = padding.top + chartHeight - barHeight;
+
+        // 그라데이션 바
+        const gradient = ctx.createLinearGradient(x, y, x, y + barHeight);
+        gradient.addColorStop(0, '#667eea');
+        gradient.addColorStop(1, '#764ba2');
+        ctx.fillStyle = gradient;
+        ctx.beginPath();
+        ctx.roundRect(x, y, barWidth, barHeight, 4);
+        ctx.fill();
+
+        // X축 레이블
+        ctx.fillStyle = '#8E8E93';
+        ctx.font = '11px -apple-system, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(d.label, x + barWidth / 2, height - 10);
+    });
+
+    // Y축 레이블
+    ctx.fillStyle = '#8E8E93';
+    ctx.font = '10px -apple-system, sans-serif';
+    ctx.textAlign = 'right';
+    for (let i = 0; i <= 4; i++) {
+        const value = Math.round((maxRevenue / 4) * (4 - i));
+        const y = padding.top + (chartHeight / 4) * i;
+        ctx.fillText(formatCompactNumber(value), padding.left - 8, y + 4);
+    }
+
+    // 범례 업데이트
+    const totalRevenue = data.reduce((sum, d) => sum + d.revenue, 0);
+    const avgRevenue = Math.round(totalRevenue / 12);
+    document.getElementById('revenue-legend').innerHTML = `
+        <span class="legend-item">
+            <span class="legend-dot" style="background: linear-gradient(135deg, #667eea, #764ba2);"></span>
+            연간 총 매출: ${formatNumber(totalRevenue)}원
+        </span>
+        <span class="legend-item">
+            <span class="legend-dot" style="background: #34C759;"></span>
+            월 평균: ${formatNumber(avgRevenue)}원
+        </span>
+    `;
+}
+
+// 서비스별 매출 파이 차트
+function renderServicePieChart() {
+    const canvas = document.getElementById('service-pie-chart');
+    if (!canvas) return;
+
+    const ctx = canvas.getContext('2d');
+    const visits = db.getAllVisits();
+
+    // 서비스별 매출 집계
+    const serviceData = {};
+    visits.forEach(visit => {
+        const service = categorizeService(visit.service);
+        if (!serviceData[service]) {
+            serviceData[service] = 0;
+        }
+        serviceData[service] += visit.finalAmount;
+    });
+
+    const colors = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7', '#DDA0DD'];
+    const data = Object.entries(serviceData).map(([name, value], i) => ({
+        name,
+        value,
+        color: colors[i % colors.length]
+    })).sort((a, b) => b.value - a.value);
+
+    const total = data.reduce((sum, d) => sum + d.value, 0);
+
+    // 캔버스 설정
+    const dpr = window.devicePixelRatio || 1;
+    const size = Math.min(200, window.innerWidth - 180);
+    canvas.width = size * dpr;
+    canvas.height = size * dpr;
+    canvas.style.width = size + 'px';
+    canvas.style.height = size + 'px';
+    ctx.scale(dpr, dpr);
+
+    const centerX = size / 2;
+    const centerY = size / 2;
+    const radius = size / 2 - 10;
+
+    // 파이 차트 그리기
+    let startAngle = -Math.PI / 2;
+    data.forEach(d => {
+        const sliceAngle = (d.value / total) * Math.PI * 2;
+
+        ctx.beginPath();
+        ctx.moveTo(centerX, centerY);
+        ctx.arc(centerX, centerY, radius, startAngle, startAngle + sliceAngle);
+        ctx.closePath();
+        ctx.fillStyle = d.color;
+        ctx.fill();
+
+        // 흰색 테두리
+        ctx.strokeStyle = '#FFFFFF';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        startAngle += sliceAngle;
+    });
+
+    // 도넛 홀
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, radius * 0.5, 0, Math.PI * 2);
+    ctx.fillStyle = '#FFFFFF';
+    ctx.fill();
+
+    // 중앙 텍스트
+    ctx.fillStyle = '#000000';
+    ctx.font = 'bold 14px -apple-system, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('서비스', centerX, centerY - 5);
+    ctx.font = '12px -apple-system, sans-serif';
+    ctx.fillStyle = '#8E8E93';
+    ctx.fillText('매출 비중', centerX, centerY + 12);
+
+    // 범례
+    document.getElementById('service-legend').innerHTML = data.map(d => `
+        <div class="pie-legend-item">
+            <span class="legend-color" style="background: ${d.color};"></span>
+            <span class="legend-label">${d.name}</span>
+            <span class="legend-value">${Math.round(d.value / total * 100)}%</span>
+        </div>
+    `).join('');
+}
+
+// 결제 수단 파이 차트
+function renderPaymentPieChart() {
+    const canvas = document.getElementById('payment-pie-chart');
+    if (!canvas) return;
+
+    const ctx = canvas.getContext('2d');
+    const visits = db.getAllVisits();
+
+    // 결제 수단별 집계
+    let cashTotal = 0, cardTotal = 0;
+    visits.forEach(visit => {
+        if (visit.paymentMethod === 'cash') {
+            cashTotal += visit.finalAmount;
+        } else {
+            cardTotal += visit.finalAmount;
+        }
+    });
+
+    const total = cashTotal + cardTotal;
+    if (total === 0) return;
+
+    const data = [
+        { name: '현금', value: cashTotal, color: '#34C759' },
+        { name: '카드', value: cardTotal, color: '#007AFF' }
+    ];
+
+    // 캔버스 설정
+    const dpr = window.devicePixelRatio || 1;
+    const size = Math.min(200, window.innerWidth - 180);
+    canvas.width = size * dpr;
+    canvas.height = size * dpr;
+    canvas.style.width = size + 'px';
+    canvas.style.height = size + 'px';
+    ctx.scale(dpr, dpr);
+
+    const centerX = size / 2;
+    const centerY = size / 2;
+    const radius = size / 2 - 10;
+
+    // 파이 차트 그리기
+    let startAngle = -Math.PI / 2;
+    data.forEach(d => {
+        const sliceAngle = (d.value / total) * Math.PI * 2;
+
+        ctx.beginPath();
+        ctx.moveTo(centerX, centerY);
+        ctx.arc(centerX, centerY, radius, startAngle, startAngle + sliceAngle);
+        ctx.closePath();
+        ctx.fillStyle = d.color;
+        ctx.fill();
+
+        ctx.strokeStyle = '#FFFFFF';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        startAngle += sliceAngle;
+    });
+
+    // 도넛 홀
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, radius * 0.5, 0, Math.PI * 2);
+    ctx.fillStyle = '#FFFFFF';
+    ctx.fill();
+
+    // 중앙 텍스트
+    ctx.fillStyle = '#000000';
+    ctx.font = 'bold 14px -apple-system, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('결제', centerX, centerY - 5);
+    ctx.font = '12px -apple-system, sans-serif';
+    ctx.fillStyle = '#8E8E93';
+    ctx.fillText('수단 비중', centerX, centerY + 12);
+
+    // 절감 수수료 계산 (카드 수수료 2.5%)
+    const savedFee = Math.round(cashTotal * 0.025);
+
+    // 범례
+    document.getElementById('payment-legend').innerHTML = `
+        ${data.map(d => `
+            <div class="pie-legend-item">
+                <span class="legend-color" style="background: ${d.color};"></span>
+                <span class="legend-label">${d.name}</span>
+                <span class="legend-value">${Math.round(d.value / total * 100)}%</span>
+            </div>
+        `).join('')}
+        <div class="pie-legend-item highlight">
+            <span class="legend-color" style="background: #FF9500;"></span>
+            <span class="legend-label">절감 수수료</span>
+            <span class="legend-value">${formatNumber(savedFee)}원</span>
+        </div>
+    `;
+}
+
+// 서비스 분류 함수
+function categorizeService(serviceName) {
+    if (serviceName.includes('펌')) return '펌';
+    if (serviceName.includes('염색') || serviceName.includes('컬러')) return '염색';
+    if (serviceName.includes('클리닉') || serviceName.includes('케어')) return '클리닉';
+    if (serviceName.includes('커트')) return '커트';
+    return '기타';
+}
+
+// 숫자 축약 표시
+function formatCompactNumber(num) {
+    if (num >= 10000000) return Math.round(num / 10000000) + '천만';
+    if (num >= 1000000) return Math.round(num / 1000000) + '백만';
+    if (num >= 10000) return Math.round(num / 10000) + '만';
+    if (num >= 1000) return Math.round(num / 1000) + 'K';
+    return num.toString();
 }
 
 // ===== 고객 상세 보기 =====

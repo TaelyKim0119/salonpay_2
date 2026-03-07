@@ -216,8 +216,36 @@
 
             <!-- 탭 콘텐츠: 분석 -->
             <div id="tab-analysis" class="tab-content">
+                <!-- 기본 통계 카드 -->
                 <div class="analysis-cards" id="analysis-content">
                     <!-- 동적으로 생성 -->
+                </div>
+
+                <!-- 월별 매출 추이 (시계열 차트) -->
+                <div class="chart-section">
+                    <h3 class="chart-title">월별 매출 추이</h3>
+                    <div class="chart-container">
+                        <canvas id="revenue-chart"></canvas>
+                    </div>
+                    <div class="chart-legend" id="revenue-legend"></div>
+                </div>
+
+                <!-- 서비스별 매출 비중 (파이 차트) -->
+                <div class="chart-section">
+                    <h3 class="chart-title">서비스별 매출 비중</h3>
+                    <div class="pie-chart-container">
+                        <canvas id="service-pie-chart"></canvas>
+                        <div class="pie-legend" id="service-legend"></div>
+                    </div>
+                </div>
+
+                <!-- 결제 수단 비중 (파이 차트) -->
+                <div class="chart-section">
+                    <h3 class="chart-title">결제 수단 비중</h3>
+                    <div class="pie-chart-container">
+                        <canvas id="payment-pie-chart"></canvas>
+                        <div class="pie-legend" id="payment-legend"></div>
+                    </div>
                 </div>
             </div>
         </div>
