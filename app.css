@@ -7,6 +7,11 @@
 
 /* ===== CSS Variables - iOS Style ===== */
 :root {
+    /* Brand Colors - Mango Theme */
+    --mango-primary: #F5A623;
+    --mango-light: #FFD93D;
+    --mango-dark: #E8920D;
+
     /* iOS System Colors */
     --ios-blue: #007AFF;
     --ios-green: #34C759;
@@ -188,27 +193,27 @@ h4 { font-size: 20px; font-weight: 600; letter-spacing: -0.2px; }
     align-items: center;
     padding: var(--space-lg);
     border-radius: var(--radius-lg);
-    border: none;
+    border: 3px solid var(--mango-primary);
     cursor: pointer;
     transition: all 0.2s ease;
     text-decoration: none;
     backdrop-filter: blur(var(--blur-amount));
     -webkit-backdrop-filter: blur(var(--blur-amount));
+    background: var(--bg-secondary);
+    box-shadow: var(--shadow-md);
 }
 
 .main-btn:active {
     transform: scale(0.98);
-    opacity: 0.9;
+    border-color: var(--mango-dark);
 }
 
 .main-btn-customer {
-    background: var(--ios-gray-6);
-    box-shadow: var(--shadow-sm);
+    background: var(--bg-secondary);
 }
 
 .main-btn-admin {
-    background: var(--ios-gray-6);
-    box-shadow: var(--shadow-sm);
+    background: var(--bg-secondary);
 }
 
 .main-btn .btn-icon {
@@ -305,7 +310,7 @@ h4 { font-size: 20px; font-weight: 600; letter-spacing: -0.2px; }
     margin-left: -8px;
     border: none;
     background: transparent;
-    color: var(--ios-blue);
+    color: var(--mango-primary);
     font-size: 17px;
     font-weight: 400;
     cursor: pointer;
@@ -416,7 +421,7 @@ h4 { font-size: 20px; font-weight: 600; letter-spacing: -0.2px; }
 .btn-primary {
     width: 100%;
     padding: var(--space-md);
-    background: var(--ios-blue);
+    background: var(--mango-primary);
     border: none;
     border-radius: var(--radius-sm);
     color: var(--ios-white);
@@ -428,7 +433,7 @@ h4 { font-size: 20px; font-weight: 600; letter-spacing: -0.2px; }
 }
 
 .btn-primary:hover {
-    background: #0066d6;
+    background: var(--mango-dark);
 }
 
 .btn-primary:active {
@@ -441,7 +446,7 @@ h4 { font-size: 20px; font-weight: 600; letter-spacing: -0.2px; }
     background: transparent;
     border: none;
     border-radius: var(--radius-sm);
-    color: var(--ios-blue);
+    color: var(--mango-primary);
     font-size: 17px;
     font-weight: 400;
     cursor: pointer;
@@ -484,7 +489,7 @@ h4 { font-size: 20px; font-weight: 600; letter-spacing: -0.2px; }
 .balance-card {
     margin: var(--space-md);
     padding: var(--space-lg);
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #F5A623 0%, #E8920D 100%);
     border-radius: var(--radius-lg);
     color: var(--ios-white);
 }
@@ -635,7 +640,7 @@ h4 { font-size: 20px; font-weight: 600; letter-spacing: -0.2px; }
 
 .section-link {
     font-size: 17px;
-    color: var(--ios-blue);
+    color: var(--mango-primary);
     text-decoration: none;
     font-weight: 400;
 }
@@ -684,20 +689,20 @@ h4 { font-size: 20px; font-weight: 600; letter-spacing: -0.2px; }
 }
 
 .history-icon {
-    width: 44px;
-    height: 44px;
-    border-radius: var(--radius-xs);
+    width: 72px;
+    height: 72px;
+    border-radius: var(--radius-sm);
     display: flex;
     align-items: center;
     justify-content: center;
-    margin-right: var(--space-sm);
+    margin-right: var(--space-md);
     flex-shrink: 0;
     background: var(--ios-gray-6);
 }
 
 .history-icon img {
-    width: 36px;
-    height: 36px;
+    width: 60px;
+    height: 60px;
     object-fit: contain;
 }
 
@@ -733,7 +738,7 @@ h4 { font-size: 20px; font-weight: 600; letter-spacing: -0.2px; }
 }
 
 .history-points.use {
-    color: var(--ios-blue);
+    color: var(--mango-dark);
 }
 
 .history-price {
@@ -778,7 +783,7 @@ h4 { font-size: 20px; font-weight: 600; letter-spacing: -0.2px; }
 .stat-card .stat-value {
     font-size: 28px;
     font-weight: 700;
-    color: var(--ios-blue);
+    color: var(--mango-primary);
     margin-bottom: var(--space-xs);
     letter-spacing: -1px;
 }
@@ -895,7 +900,7 @@ h4 { font-size: 20px; font-weight: 600; letter-spacing: -0.2px; }
     width: 44px;
     height: 44px;
     border-radius: var(--radius-full);
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #F5A623 0%, #E8920D 100%);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -930,7 +935,7 @@ h4 { font-size: 20px; font-weight: 600; letter-spacing: -0.2px; }
 .customer-points {
     font-size: 17px;
     font-weight: 500;
-    color: var(--ios-blue);
+    color: var(--mango-primary);
     margin-bottom: 2px;
 }
 
@@ -1049,7 +1054,7 @@ h4 { font-size: 20px; font-weight: 600; letter-spacing: -0.2px; }
 
 .progress-fill {
     height: 100%;
-    background: var(--ios-blue);
+    background: var(--mango-primary);
     border-radius: var(--radius-full);
     transition: width 0.5s ease;
 }
@@ -1156,7 +1161,7 @@ h4 { font-size: 20px; font-weight: 600; letter-spacing: -0.2px; }
 .customer-detail-header {
     text-align: center;
     padding: var(--space-xl) var(--space-lg) 60px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #F5A623 0%, #E8920D 100%);
     color: var(--ios-white);
 }
 
@@ -1210,7 +1215,7 @@ h4 { font-size: 20px; font-weight: 600; letter-spacing: -0.2px; }
 .detail-stat-value {
     font-size: 22px;
     font-weight: 700;
-    color: var(--ios-blue);
+    color: var(--mango-primary);
     margin-bottom: var(--space-xs);
 }
 

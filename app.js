@@ -419,8 +419,8 @@ function renderRevenueChart() {
 
         // 그라데이션 바
         const gradient = ctx.createLinearGradient(x, y, x, y + barHeight);
-        gradient.addColorStop(0, '#667eea');
-        gradient.addColorStop(1, '#764ba2');
+        gradient.addColorStop(0, '#FFD93D');
+        gradient.addColorStop(1, '#F5A623');
         ctx.fillStyle = gradient;
         ctx.beginPath();
         ctx.roundRect(x, y, barWidth, barHeight, 4);
@@ -448,7 +448,7 @@ function renderRevenueChart() {
     const avgRevenue = Math.round(totalRevenue / 12);
     document.getElementById('revenue-legend').innerHTML = `
         <span class="legend-item">
-            <span class="legend-dot" style="background: linear-gradient(135deg, #667eea, #764ba2);"></span>
+            <span class="legend-dot" style="background: linear-gradient(135deg, #FFD93D, #F5A623);"></span>
             연간 총 매출: ${formatNumber(totalRevenue)}원
         </span>
         <span class="legend-item">
