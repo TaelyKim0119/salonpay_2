@@ -67,7 +67,25 @@ const translations = {
         won: '원',
         count: '건',
         people: '명',
-        sheet: '장'
+        sheet: '장',
+        noCustomers: '등록된 고객이 없습니다.',
+        noBirthday: '예정된 생일이 없습니다.',
+        noVisitHistory: '방문 기록이 없습니다.',
+        noCashPayment: '현금 결제 내역이 없습니다.',
+        serviceCenter: '서비스',
+        ratioLabel: '매출 비중',
+        cashCenter: '현금',
+        tierRatioLabel: '구간별 비중',
+        amount: '금액',
+        minTierError: '최소 1개 이상의 구간을 입력하세요',
+        settingsSaved: '설정이 저장되었습니다',
+        phoneNotFound: '등록되지 않은 전화번호입니다.',
+        monthDay: '{month}월 {day}일',
+        honorific: '님',
+        monthLabel: '{month}월',
+        tenMillion: '천만',
+        million: '백만',
+        tenThousand: '만'
     },
     en: {
         appName: 'SalonPay',
@@ -126,10 +144,28 @@ const translations = {
         yearTotal: 'Annual Total',
         monthAvg: 'Monthly Avg',
         totalCash: 'Total Cash',
-        won: 'KRW',
+        won: ' KRW',
         count: '',
         people: '',
-        sheet: ''
+        sheet: '',
+        noCustomers: 'No registered customers.',
+        noBirthday: 'No upcoming birthdays.',
+        noVisitHistory: 'No visit history.',
+        noCashPayment: 'No cash payment history.',
+        serviceCenter: 'Service',
+        ratioLabel: 'Revenue Ratio',
+        cashCenter: 'Cash',
+        tierRatioLabel: 'Tier Ratio',
+        amount: 'Amount',
+        minTierError: 'Enter at least 1 tier',
+        settingsSaved: 'Settings saved',
+        phoneNotFound: 'Phone number not found.',
+        monthDay: '{month}/{day}',
+        honorific: '',
+        monthLabel: '{month}',
+        tenMillion: '0M',
+        million: 'M',
+        tenThousand: '0K'
     },
     ja: {
         appName: 'サロンペイ',
@@ -191,7 +227,25 @@ const translations = {
         won: 'ウォン',
         count: '件',
         people: '名',
-        sheet: '枚'
+        sheet: '枚',
+        noCustomers: '登録されている顧客がいません。',
+        noBirthday: '予定されている誕生日がありません。',
+        noVisitHistory: '訪問履歴がありません。',
+        noCashPayment: '現金決済履歴がありません。',
+        serviceCenter: 'サービス',
+        ratioLabel: '売上比率',
+        cashCenter: '現金',
+        tierRatioLabel: '区間別比率',
+        amount: '金額',
+        minTierError: '最低1つ以上の区間を入力してください',
+        settingsSaved: '設定が保存されました',
+        phoneNotFound: '登録されていない電話番号です。',
+        monthDay: '{month}月{day}日',
+        honorific: '様',
+        monthLabel: '{month}月',
+        tenMillion: '千万',
+        million: '百万',
+        tenThousand: '万'
     },
     zh: {
         appName: 'SalonPay',
@@ -253,7 +307,25 @@ const translations = {
         won: '韩元',
         count: '笔',
         people: '人',
-        sheet: '张'
+        sheet: '张',
+        noCustomers: '暂无注册顾客。',
+        noBirthday: '暂无即将生日。',
+        noVisitHistory: '暂无访问记录。',
+        noCashPayment: '暂无现金支付记录。',
+        serviceCenter: '服务',
+        ratioLabel: '营收比例',
+        cashCenter: '现金',
+        tierRatioLabel: '区间比例',
+        amount: '金额',
+        minTierError: '请至少输入1个区间',
+        settingsSaved: '设置已保存',
+        phoneNotFound: '未注册的手机号码。',
+        monthDay: '{month}月{day}日',
+        honorific: '',
+        monthLabel: '{month}月',
+        tenMillion: '千万',
+        million: '百万',
+        tenThousand: '万'
     }
 };
 
@@ -267,6 +339,16 @@ function setLanguage(lang) {
     currentLang = lang;
     localStorage.setItem('salonpay_lang', lang);
     applyTranslations();
+
+    // 동적 컨텐츠 새로고침
+    const currentScreen = document.querySelector('.screen.active');
+    if (currentScreen) {
+        if (currentScreen.id === 'admin') {
+            loadAdminDashboard();
+        } else if (currentScreen.id === 'customer-dashboard' && currentCustomer) {
+            loadCustomerDashboard();
+        }
+    }
 }
 
 function applyTranslations() {
@@ -384,7 +466,7 @@ function handleCustomerLogin(e) {
         loadCustomerDashboard();
         phoneInput.value = '';
     } else {
-        showToast('등록되지 않은 전화번호입니다.');
+        showToast(t('phoneNotFound'));
     }
 }
 
@@ -396,7 +478,7 @@ function loadCustomerDashboard() {
     currentCustomer = db.getCustomerById(currentCustomer.id);
 
     // 잔고 카드 업데이트
-    document.getElementById('customer-name-display').textContent = `${currentCustomer.name} 님`;
+    document.getElementById('customer-name-display').textContent = `${currentCustomer.name} ${t('honorific')}`;
     document.getElementById('customer-phone-display').textContent = currentCustomer.phone;
     document.getElementById('customer-balance').textContent = formatNumber(currentCustomer.points);
 
@@ -420,7 +502,7 @@ function loadCustomerHistory() {
         historyList.innerHTML = `
             <div class="empty-state">
                 <div class="empty-icon">📋</div>
-                <p>아직 이용 내역이 없습니다.</p>
+                <p>${t('noHistory')}</p>
             </div>
         `;
         return;
@@ -437,7 +519,7 @@ function loadCustomerHistory() {
             </div>
             <div class="history-amount">
                 <div class="history-points earn">+${formatNumber(visit.pointsEarned)}P</div>
-                <div class="history-price">${formatNumber(visit.finalAmount)}원</div>
+                <div class="history-price">${formatNumber(visit.finalAmount)}${t('won')}</div>
             </div>
         </div>
     `).join('');
@@ -482,7 +564,7 @@ function loadCustomerList(customers) {
         listContainer.innerHTML = `
             <div class="empty-state">
                 <div class="empty-icon">👥</div>
-                <p>등록된 고객이 없습니다.</p>
+                <p>${t('noCustomers')}</p>
             </div>
         `;
         return;
@@ -497,7 +579,7 @@ function loadCustomerList(customers) {
             </div>
             <div class="customer-meta">
                 <div class="customer-points">${formatNumber(customer.points)}P</div>
-                <div class="customer-visits">방문 ${customer.visitCount}회</div>
+                <div class="customer-visits">${t('visits')} ${customer.visitCount}${t('count')}</div>
             </div>
         </div>
     `).join('');
@@ -553,7 +635,7 @@ function loadBirthdayList() {
         listContainer.innerHTML = `
             <div class="empty-state">
                 <div class="empty-icon">🎂</div>
-                <p>예정된 생일이 없습니다.</p>
+                <p>${t('noBirthday')}</p>
             </div>
         `;
         return;
@@ -570,9 +652,9 @@ function loadBirthdayList() {
                 <div class="birthday-icon"><img src="이미지/생일.png" alt="생일"></div>
                 <div class="birthday-info">
                     <div class="birthday-name">${customer.name}</div>
-                    <div class="birthday-date">${month}월 ${day}일</div>
+                    <div class="birthday-date">${formatBirthdayDate(month, day)}</div>
                 </div>
-                ${isToday ? '<div class="birthday-badge">오늘!</div>' : ''}
+                ${isToday ? `<div class="birthday-badge">${t('today')}</div>` : ''}
             </div>
         `;
     }).join('');
@@ -591,30 +673,30 @@ function loadAnalysisData(stats) {
 
     container.innerHTML = `
         <div class="analysis-card">
-            <div class="card-title">이번 달 매출</div>
-            <div class="card-value">${formatNumber(stats.totalRevenue)}<span>원</span></div>
-            <div class="card-desc">방문 ${stats.monthlyVisits}건</div>
+            <div class="card-title">${t('monthlyRevenueTitle')}</div>
+            <div class="card-value">${formatNumber(stats.totalRevenue)}<span>${t('won')}</span></div>
+            <div class="card-desc">${t('visits')} ${stats.monthlyVisits}${t('count')}</div>
         </div>
 
         <div class="analysis-card">
-            <div class="card-title">현금 결제 비율</div>
+            <div class="card-title">${t('cashRatio')}</div>
             <div class="card-value">${stats.cashRatio}<span>%</span></div>
-            <div class="card-desc">카드 수수료 ${formatNumber(stats.savedFees)}원 절약</div>
+            <div class="card-desc">${t('savedFees')} ${formatNumber(stats.savedFees)}${t('won')}</div>
             <div class="progress-bar">
                 <div class="progress-fill" style="width: ${stats.cashRatio}%"></div>
             </div>
         </div>
 
         <div class="analysis-card">
-            <div class="card-title">총 미사용 적립금</div>
+            <div class="card-title">${t('unusedPoints')}</div>
             <div class="card-value">${formatNumber(totalPoints)}<span>P</span></div>
-            <div class="card-desc">고객 평균 ${formatNumber(Math.round(totalPoints / (customers.length || 1)))}P</div>
+            <div class="card-desc">${t('avgPoints')} ${formatNumber(Math.round(totalPoints / (customers.length || 1)))}P</div>
         </div>
 
         <div class="analysis-card">
-            <div class="card-title">VIP 고객</div>
-            <div class="card-value">${vipCustomers.length}<span>명</span></div>
-            <div class="card-desc">방문 10회 이상 고객</div>
+            <div class="card-title">${t('vipCustomers')}</div>
+            <div class="card-value">${vipCustomers.length}<span>${t('people')}</span></div>
+            <div class="card-desc">${t('vipDesc')}</div>
         </div>
     `;
 
@@ -643,7 +725,7 @@ function renderRevenueChart() {
     for (let i = 11; i >= 0; i--) {
         const date = new Date(today.getFullYear(), today.getMonth() - i, 1);
         const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
-        monthlyData[key] = { revenue: 0, visits: 0, label: `${date.getMonth() + 1}월` };
+        monthlyData[key] = { revenue: 0, visits: 0, label: formatMonthLabel(date.getMonth() + 1) };
     }
 
     visits.forEach(visit => {
@@ -728,11 +810,11 @@ function renderRevenueChart() {
     document.getElementById('revenue-legend').innerHTML = `
         <span class="legend-item">
             <span class="legend-dot" style="background: linear-gradient(135deg, #FFD93D, #F5A623);"></span>
-            연간 총 매출: ${formatNumber(totalRevenue)}원
+            ${t('yearTotal')}: ${formatNumber(totalRevenue)}${t('won')}
         </span>
         <span class="legend-item">
             <span class="legend-dot" style="background: #34C759;"></span>
-            월 평균: ${formatNumber(avgRevenue)}원
+            ${t('monthAvg')}: ${formatNumber(avgRevenue)}${t('won')}
         </span>
     `;
 }
@@ -807,10 +889,10 @@ function renderServicePieChart() {
     ctx.fillStyle = '#000000';
     ctx.font = 'bold 14px -apple-system, sans-serif';
     ctx.textAlign = 'center';
-    ctx.fillText('서비스', centerX, centerY - 5);
+    ctx.fillText(t('serviceCenter'), centerX, centerY - 5);
     ctx.font = '12px -apple-system, sans-serif';
     ctx.fillStyle = '#8E8E93';
-    ctx.fillText('매출 비중', centerX, centerY + 12);
+    ctx.fillText(t('ratioLabel'), centerX, centerY + 12);
 
     // 범례
     document.getElementById('service-legend').innerHTML = data.map(d => `
@@ -876,7 +958,7 @@ function renderPaymentPieChart() {
 
     const total = data.reduce((sum, d) => sum + d.value, 0);
     if (total === 0) {
-        document.getElementById('payment-legend').innerHTML = '<p style="color: #8E8E93;">현금 결제 내역이 없습니다.</p>';
+        document.getElementById('payment-legend').innerHTML = `<p style="color: #8E8E93;">${t('noCashPayment')}</p>`;
         return;
     }
 
@@ -922,10 +1004,10 @@ function renderPaymentPieChart() {
     ctx.fillStyle = '#000000';
     ctx.font = 'bold 14px -apple-system, sans-serif';
     ctx.textAlign = 'center';
-    ctx.fillText('현금', centerX, centerY - 5);
+    ctx.fillText(t('cashCenter'), centerX, centerY - 5);
     ctx.font = '12px -apple-system, sans-serif';
     ctx.fillStyle = '#8E8E93';
-    ctx.fillText('구간별 비중', centerX, centerY + 12);
+    ctx.fillText(t('tierRatioLabel'), centerX, centerY + 12);
 
     // 범례
     document.getElementById('payment-legend').innerHTML = `
@@ -933,13 +1015,13 @@ function renderPaymentPieChart() {
             <div class="pie-legend-item">
                 <span class="legend-color" style="background: ${d.color};"></span>
                 <span class="legend-label">${d.name}</span>
-                <span class="legend-value">${d.value}건 (${Math.round(d.value / total * 100)}%)</span>
+                <span class="legend-value">${d.value}${t('count')} (${Math.round(d.value / total * 100)}%)</span>
             </div>
         `).join('')}
         <div class="pie-legend-item highlight">
             <span class="legend-color" style="background: #F5A623;"></span>
-            <span class="legend-label">총 현금결제</span>
-            <span class="legend-value">${total}건</span>
+            <span class="legend-label">${t('totalCash')}</span>
+            <span class="legend-value">${total}${t('count')}</span>
         </div>
     `;
 }
@@ -955,9 +1037,9 @@ function categorizeService(serviceName) {
 
 // 숫자 축약 표시
 function formatCompactNumber(num) {
-    if (num >= 10000000) return Math.round(num / 10000000) + '천만';
-    if (num >= 1000000) return Math.round(num / 1000000) + '백만';
-    if (num >= 10000) return Math.round(num / 10000) + '만';
+    if (num >= 10000000) return Math.round(num / 10000000) + t('tenMillion');
+    if (num >= 1000000) return Math.round(num / 1000000) + t('million');
+    if (num >= 10000) return Math.round(num / 10000) + t('tenThousand');
     if (num >= 1000) return Math.round(num / 1000) + 'K';
     return num.toString();
 }
@@ -980,7 +1062,7 @@ function showCustomerDetail(customerId) {
     document.getElementById('detail-coupons').textContent = coupons.length;
 
     // 메모
-    document.getElementById('detail-memo').textContent = customer.memo || '메모가 없습니다.';
+    document.getElementById('detail-memo').textContent = customer.memo || t('noMemo');
 
     // 방문 기록
     const visits = db.getVisitsByCustomerId(customerId).slice(0, 10);
@@ -990,7 +1072,7 @@ function showCustomerDetail(customerId) {
         historyContainer.innerHTML = `
             <div class="empty-state">
                 <div class="empty-icon">📋</div>
-                <p>방문 기록이 없습니다.</p>
+                <p>${t('noVisitHistory')}</p>
             </div>
         `;
     } else {
@@ -1005,7 +1087,7 @@ function showCustomerDetail(customerId) {
                 </div>
                 <div class="history-amount">
                     <div class="history-points earn">+${formatNumber(visit.pointsEarned)}P</div>
-                    <div class="history-price">${formatNumber(visit.finalAmount)}원</div>
+                    <div class="history-price">${formatNumber(visit.finalAmount)}${t('won')}</div>
                 </div>
             </div>
         `).join('');
@@ -1034,7 +1116,17 @@ function formatDate(dateStr) {
     const date = new Date(dateStr);
     const month = date.getMonth() + 1;
     const day = date.getDate();
-    return `${month}월 ${day}일`;
+    return formatBirthdayDate(String(month).padStart(2, '0'), String(day).padStart(2, '0'));
+}
+
+function formatBirthdayDate(month, day) {
+    const template = t('monthDay');
+    return template.replace('{month}', parseInt(month)).replace('{day}', parseInt(day));
+}
+
+function formatMonthLabel(month) {
+    const template = t('monthLabel');
+    return template.replace('{month}', month);
 }
 
 function showToast(message) {
@@ -1075,8 +1167,8 @@ function loadTierInputs() {
 
     container.innerHTML = tiers.map((tier, i) => `
         <div class="tier-input-row">
-            <input type="number" class="tier-value" value="${tier / 10000}" min="1" placeholder="금액">
-            <span class="tier-unit">만원</span>
+            <input type="number" class="tier-value" value="${tier / 10000}" min="1" placeholder="${t('amount')}">
+            <span class="tier-unit">${t('tenThousandWon')}</span>
             <button class="btn-remove-tier" onclick="removeTierInput(this)" ${tiers.length <= 1 ? 'disabled style="opacity:0.5"' : ''}>−</button>
         </div>
     `).join('');
@@ -1090,8 +1182,8 @@ function addTierInput() {
     const newRow = document.createElement('div');
     newRow.className = 'tier-input-row';
     newRow.innerHTML = `
-        <input type="number" class="tier-value" value="${lastValue + 20}" min="1" placeholder="금액">
-        <span class="tier-unit">만원</span>
+        <input type="number" class="tier-value" value="${lastValue + 20}" min="1" placeholder="${t('amount')}">
+        <span class="tier-unit">${t('tenThousandWon')}</span>
         <button class="btn-remove-tier" onclick="removeTierInput(this)">−</button>
     `;
     container.appendChild(newRow);
@@ -1123,7 +1215,7 @@ function saveSettings() {
         .sort((a, b) => a - b);
 
     if (tiers.length === 0) {
-        showToast('최소 1개 이상의 구간을 입력하세요');
+        showToast(t('minTierError'));
         return;
     }
 
@@ -1132,7 +1224,7 @@ function saveSettings() {
     db.updateSettings(settings);
 
     closeSettings();
-    showToast('설정이 저장되었습니다');
+    showToast(t('settingsSaved'));
 
     // 차트 새로고침
     renderPaymentPieChart();
