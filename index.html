@@ -13,6 +13,11 @@
 
     <!-- 스타일시트 -->
     <link rel="stylesheet" href="app.css">
+
+    <!-- Google Identity Services -->
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <!-- Google API Client -->
+    <script src="https://apis.google.com/js/api.js" async defer></script>
 </head>
 <body>
     <div class="app-container">
@@ -58,9 +63,39 @@
             </div>
         </div>
 
+        <!-- ===== 미용실 검색 화면 (고객용) ===== -->
+        <div id="salon-search" class="screen login-screen">
+            <div class="login-header">
+                <h2 data-i18n="searchSalon">미용실 찾기</h2>
+                <p data-i18n="searchSalonDesc">이용하시는 미용실을 검색하세요</p>
+            </div>
+
+            <div class="salon-search-form">
+                <div class="input-group">
+                    <label for="salon-search-input" data-i18n="salonName">미용실 이름</label>
+                    <input
+                        type="text"
+                        id="salon-search-input"
+                        data-i18n-placeholder="salonSearchPlaceholder"
+                        placeholder="미용실 이름 또는 지역 검색"
+                        autocomplete="off"
+                    >
+                </div>
+
+                <div class="salon-search-results" id="salon-search-results">
+                    <!-- 동적으로 생성 -->
+                </div>
+
+                <button type="button" class="btn-secondary" onclick="showScreen('main')" data-i18n="back">돌아가기</button>
+            </div>
+        </div>
+
         <!-- ===== 고객 로그인 화면 ===== -->
         <div id="customer-login" class="screen login-screen">
             <div class="login-header">
+                <div class="selected-salon-badge" id="selected-salon-badge">
+                    <!-- 선택된 미용실 표시 -->
+                </div>
                 <h2 data-i18n="hello">안녕하세요!</h2>
                 <p data-i18n="phonePrompt">전화번호로 간편하게 조회하세요</p>
             </div>
@@ -80,7 +115,65 @@
                 </div>
 
                 <button type="submit" class="btn-primary" data-i18n="search">조회하기</button>
+                <button type="button" class="btn-secondary" onclick="showScreen('salon-search')" data-i18n="changeSalon">다른 미용실</button>
+            </form>
+        </div>
+
+        <!-- ===== 관리자 로그인 화면 ===== -->
+        <div id="admin-login" class="screen login-screen">
+            <div class="login-header">
+                <h2 data-i18n="adminLogin">관리자 로그인</h2>
+                <p data-i18n="adminLoginDesc">Google 계정으로 로그인하세요</p>
+            </div>
+
+            <div class="admin-login-form">
+                <button type="button" class="btn-google" id="btn-google-signin">
+                    <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google">
+                    <span data-i18n="googleSignIn">Google 로그인</span>
+                </button>
+
+                <div class="login-divider">
+                    <span data-i18n="or">또는</span>
+                </div>
+
+                <button type="button" class="btn-text" onclick="showScreen('admin-register')" data-i18n="newSalonRegister">새 미용실 등록하기</button>
+
                 <button type="button" class="btn-secondary" onclick="showScreen('main')" data-i18n="back">돌아가기</button>
+            </div>
+        </div>
+
+        <!-- ===== 미용실 등록 화면 ===== -->
+        <div id="admin-register" class="screen login-screen">
+            <div class="login-header">
+                <h2 data-i18n="registerSalon">미용실 등록</h2>
+                <p data-i18n="registerSalonDesc">새 미용실을 등록하세요</p>
+            </div>
+
+            <form id="register-form" class="login-form">
+                <div class="input-group">
+                    <label for="register-salon-name" data-i18n="salonName">미용실 이름</label>
+                    <input
+                        type="text"
+                        id="register-salon-name"
+                        data-i18n-placeholder="salonNamePlaceholder"
+                        placeholder="예: 살롱헤어 강남점"
+                        required
+                    >
+                </div>
+
+                <div class="input-group">
+                    <label for="register-region" data-i18n="region">지역</label>
+                    <input
+                        type="text"
+                        id="register-region"
+                        data-i18n-placeholder="regionPlaceholder"
+                        placeholder="예: 서울 강남 / Los Angeles"
+                        required
+                    >
+                </div>
+
+                <button type="submit" class="btn-primary" data-i18n="registerAndStart">등록하고 시작하기</button>
+                <button type="button" class="btn-secondary" onclick="showScreen('admin-login')" data-i18n="back">돌아가기</button>
             </form>
         </div>
 
@@ -333,6 +426,9 @@
     </div>
 
     <!-- 스크립트 -->
+    <script src="config.js"></script>
+    <script src="auth.js"></script>
+    <script src="google-sheets-db.js"></script>
     <script src="data/database.js"></script>
     <script src="app.js"></script>
 </body>

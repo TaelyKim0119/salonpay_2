@@ -85,7 +85,30 @@ const translations = {
         monthLabel: '{month}월',
         tenMillion: '천만',
         million: '백만',
-        tenThousand: '만'
+        tenThousand: '만',
+        // 새로운 다테넌트 키
+        searchSalon: '미용실 찾기',
+        searchSalonDesc: '이용하시는 미용실을 검색하세요',
+        salonName: '미용실 이름',
+        salonSearchPlaceholder: '미용실 이름 또는 지역 검색',
+        changeSalon: '다른 미용실',
+        adminLogin: '관리자 로그인',
+        adminLoginDesc: 'Google 계정으로 로그인하세요',
+        googleSignIn: 'Google 로그인',
+        or: '또는',
+        newSalonRegister: '새 미용실 등록하기',
+        registerSalon: '미용실 등록',
+        registerSalonDesc: '새 미용실을 등록하세요',
+        salonNamePlaceholder: '예: 살롱헤어 강남점',
+        region: '지역',
+        regionPlaceholder: '예: 서울 강남 / Los Angeles',
+        registerAndStart: '등록하고 시작하기',
+        noSalonFound: '검색 결과가 없습니다',
+        selectSalon: '미용실을 선택해주세요',
+        loadingData: '데이터 로딩 중...',
+        loginRequired: 'Google 로그인이 필요합니다',
+        registrationComplete: '등록이 완료되었습니다!',
+        logout: '로그아웃'
     },
     en: {
         appName: 'SalonPay',
@@ -165,7 +188,30 @@ const translations = {
         monthLabel: '{month}',
         tenMillion: '0M',
         million: 'M',
-        tenThousand: '0K'
+        tenThousand: '0K',
+        // Multi-tenant keys
+        searchSalon: 'Find Salon',
+        searchSalonDesc: 'Search for your salon',
+        salonName: 'Salon Name',
+        salonSearchPlaceholder: 'Search salon name or region',
+        changeSalon: 'Other Salon',
+        adminLogin: 'Admin Login',
+        adminLoginDesc: 'Sign in with Google',
+        googleSignIn: 'Sign in with Google',
+        or: 'or',
+        newSalonRegister: 'Register New Salon',
+        registerSalon: 'Register Salon',
+        registerSalonDesc: 'Register your new salon',
+        salonNamePlaceholder: 'e.g., LA Hair Studio',
+        region: 'Region',
+        regionPlaceholder: 'e.g., Los Angeles',
+        registerAndStart: 'Register & Start',
+        noSalonFound: 'No salon found',
+        selectSalon: 'Please select a salon',
+        loadingData: 'Loading...',
+        loginRequired: 'Google login required',
+        registrationComplete: 'Registration complete!',
+        logout: 'Logout'
     },
     ja: {
         appName: 'サロンペイ',
@@ -245,7 +291,30 @@ const translations = {
         monthLabel: '{month}月',
         tenMillion: '千万',
         million: '百万',
-        tenThousand: '万'
+        tenThousand: '万',
+        // マルチテナントキー
+        searchSalon: 'サロン検索',
+        searchSalonDesc: 'ご利用のサロンを検索してください',
+        salonName: 'サロン名',
+        salonSearchPlaceholder: 'サロン名または地域で検索',
+        changeSalon: '他のサロン',
+        adminLogin: '管理者ログイン',
+        adminLoginDesc: 'Googleアカウントでログイン',
+        googleSignIn: 'Googleログイン',
+        or: 'または',
+        newSalonRegister: '新しいサロンを登録',
+        registerSalon: 'サロン登録',
+        registerSalonDesc: '新しいサロンを登録してください',
+        salonNamePlaceholder: '例: ヘアサロン渋谷店',
+        region: '地域',
+        regionPlaceholder: '例: 東京 渋谷',
+        registerAndStart: '登録して開始',
+        noSalonFound: '検索結果がありません',
+        selectSalon: 'サロンを選択してください',
+        loadingData: '読み込み中...',
+        loginRequired: 'Googleログインが必要です',
+        registrationComplete: '登録完了！',
+        logout: 'ログアウト'
     },
     zh: {
         appName: 'SalonPay',
@@ -325,7 +394,30 @@ const translations = {
         monthLabel: '{month}月',
         tenMillion: '千万',
         million: '百万',
-        tenThousand: '万'
+        tenThousand: '万',
+        // 多租户键
+        searchSalon: '查找美发店',
+        searchSalonDesc: '搜索您的美发店',
+        salonName: '美发店名称',
+        salonSearchPlaceholder: '搜索美发店名称或地区',
+        changeSalon: '其他美发店',
+        adminLogin: '管理员登录',
+        adminLoginDesc: '使用Google账号登录',
+        googleSignIn: 'Google登录',
+        or: '或',
+        newSalonRegister: '注册新美发店',
+        registerSalon: '注册美发店',
+        registerSalonDesc: '注册您的新美发店',
+        salonNamePlaceholder: '例: LA美发店',
+        region: '地区',
+        regionPlaceholder: '例: 洛杉矶',
+        registerAndStart: '注册并开始',
+        noSalonFound: '未找到美发店',
+        selectSalon: '请选择美发店',
+        loadingData: '加载中...',
+        loginRequired: '需要Google登录',
+        registrationComplete: '注册完成！',
+        logout: '退出'
     }
 };
 
@@ -365,11 +457,65 @@ function applyTranslations() {
 
 // ===== 앱 초기화 =====
 let db;
+let sheetsDb = null;
 let currentCustomer = null;
 let currentTab = 'customers';
+let currentSalon = null;
+let isOnlineMode = false;
 
-document.addEventListener('DOMContentLoaded', () => {
-    // 데이터베이스 초기화
+document.addEventListener('DOMContentLoaded', async () => {
+    // 다국어 적용
+    applyTranslations();
+
+    // 이벤트 리스너 설정
+    initEventListeners();
+
+    // Google API 설정 확인
+    if (typeof CONFIG !== 'undefined' && isConfigured()) {
+        try {
+            // 온라인 모드 초기화
+            await initOnlineMode();
+            isOnlineMode = true;
+        } catch (error) {
+            console.error('온라인 모드 초기화 실패:', error);
+            // 오프라인 모드로 폴백
+            initOfflineMode();
+        }
+    } else {
+        // 오프라인 모드 (기존 localStorage)
+        initOfflineMode();
+    }
+
+    // 메인 화면 표시
+    showScreen('main');
+});
+
+// ===== 온라인 모드 초기화 =====
+async function initOnlineMode() {
+    // AuthManager 초기화
+    await authManager.initialize();
+
+    // GoogleSheetsDB 초기화
+    sheetsDb = new GoogleSheetsDB(authManager);
+    await sheetsDb.initialize();
+
+    // 저장된 미용실 복원
+    const savedSalon = sheetsDb.restoreCurrentSalon();
+    if (savedSalon) {
+        currentSalon = savedSalon;
+    }
+
+    // 인증 상태 리스너
+    authManager.onAuthStateChange((isSignedIn) => {
+        updateAdminUI(isSignedIn);
+    });
+
+    console.log('온라인 모드 활성화');
+}
+
+// ===== 오프라인 모드 초기화 =====
+function initOfflineMode() {
+    // 기존 localStorage 데이터베이스 사용
     db = new SalonPayDB();
 
     // 샘플 데이터 로드 (처음 실행 시)
@@ -378,27 +524,77 @@ document.addEventListener('DOMContentLoaded', () => {
         db = new SalonPayDB();
     }
 
-    // 다국어 적용
-    applyTranslations();
+    console.log('오프라인 모드 활성화 (localStorage)');
+}
 
-    // 이벤트 리스너 설정
-    initEventListeners();
-
-    // 메인 화면 표시
-    showScreen('main');
-});
+// ===== 관리자 UI 업데이트 =====
+function updateAdminUI(isSignedIn) {
+    const settingsBtn = document.querySelector('.settings-btn');
+    if (settingsBtn) {
+        // 로그아웃 버튼 추가/제거
+        const existingLogout = document.querySelector('.logout-btn');
+        if (isSignedIn && !existingLogout && isOnlineMode) {
+            const logoutBtn = document.createElement('button');
+            logoutBtn.className = 'logout-btn';
+            logoutBtn.textContent = t('logout');
+            logoutBtn.onclick = handleLogout;
+            settingsBtn.parentElement.appendChild(logoutBtn);
+        } else if (!isSignedIn && existingLogout) {
+            existingLogout.remove();
+        }
+    }
+}
 
 // ===== 이벤트 리스너 초기화 =====
 function initEventListeners() {
     // 메인 버튼
     document.getElementById('btn-customer').addEventListener('click', () => {
-        showScreen('customer-login');
+        if (isOnlineMode) {
+            // 온라인 모드: 미용실 검색 먼저
+            if (currentSalon) {
+                showScreen('customer-login');
+                updateSelectedSalonBadge();
+            } else {
+                showScreen('salon-search');
+            }
+        } else {
+            // 오프라인 모드: 바로 로그인
+            showScreen('customer-login');
+        }
     });
 
     document.getElementById('btn-admin').addEventListener('click', () => {
-        showScreen('admin');
-        loadAdminDashboard();
+        if (isOnlineMode) {
+            // 온라인 모드: 로그인 필요
+            if (authManager.isSignedIn()) {
+                handleAdminAccess();
+            } else {
+                showScreen('admin-login');
+            }
+        } else {
+            // 오프라인 모드: 바로 관리자
+            showScreen('admin');
+            loadAdminDashboard();
+        }
     });
+
+    // 미용실 검색 입력
+    const salonSearchInput = document.getElementById('salon-search-input');
+    if (salonSearchInput) {
+        salonSearchInput.addEventListener('input', debounce(handleSalonSearch, 300));
+    }
+
+    // Google 로그인 버튼
+    const googleSignInBtn = document.getElementById('btn-google-signin');
+    if (googleSignInBtn) {
+        googleSignInBtn.addEventListener('click', handleGoogleSignIn);
+    }
+
+    // 미용실 등록 폼
+    const registerForm = document.getElementById('register-form');
+    if (registerForm) {
+        registerForm.addEventListener('submit', handleSalonRegistration);
+    }
 
     // 뒤로가기 버튼들
     document.querySelectorAll('.header-back').forEach(btn => {
@@ -1230,6 +1426,190 @@ function saveSettings() {
     renderPaymentPieChart();
 }
 
+// ===== 미용실 검색 (온라인 모드) =====
+async function handleSalonSearch(e) {
+    const query = e.target.value.trim();
+    const resultsContainer = document.getElementById('salon-search-results');
+
+    if (query.length < 1) {
+        resultsContainer.innerHTML = '';
+        return;
+    }
+
+    try {
+        const salons = await sheetsDb.searchSalons(query);
+
+        if (salons.length === 0) {
+            resultsContainer.innerHTML = `
+                <div class="salon-search-empty">
+                    <div class="empty-icon">🔍</div>
+                    <p>${t('noSalonFound')}</p>
+                </div>
+            `;
+            return;
+        }
+
+        resultsContainer.innerHTML = salons.map(salon => `
+            <div class="salon-result-item" onclick="selectSalon('${salon.salonId}')">
+                <div class="salon-result-icon">💇</div>
+                <div class="salon-result-info">
+                    <div class="salon-result-name">${salon.salonName}</div>
+                    <div class="salon-result-region">${salon.region}</div>
+                </div>
+            </div>
+        `).join('');
+    } catch (error) {
+        console.error('미용실 검색 오류:', error);
+        resultsContainer.innerHTML = `
+            <div class="salon-search-empty">
+                <p>검색 중 오류가 발생했습니다.</p>
+            </div>
+        `;
+    }
+}
+
+async function selectSalon(salonId) {
+    try {
+        currentSalon = await sheetsDb.setCurrentSalon(salonId);
+        updateSelectedSalonBadge();
+        showScreen('customer-login');
+    } catch (error) {
+        console.error('미용실 선택 오류:', error);
+        showToast(t('selectSalon'));
+    }
+}
+
+function updateSelectedSalonBadge() {
+    const badge = document.getElementById('selected-salon-badge');
+    if (badge && currentSalon) {
+        badge.textContent = currentSalon.salonName;
+        badge.style.display = 'inline-flex';
+    }
+}
+
+// ===== Google 로그인 (온라인 모드) =====
+async function handleGoogleSignIn() {
+    try {
+        showLoading(t('loadingData'));
+        await authManager.signIn();
+        hideLoading();
+        handleAdminAccess();
+    } catch (error) {
+        hideLoading();
+        console.error('Google 로그인 오류:', error);
+        showToast(t('loginRequired'));
+    }
+}
+
+async function handleAdminAccess() {
+    try {
+        // 이미 등록된 미용실이 있는지 확인
+        const email = authManager.getUserEmail();
+        const salon = await sheetsDb.getSalonByOwnerEmail(email);
+
+        if (salon) {
+            // 등록된 미용실 있음 - 해당 미용실로 설정
+            currentSalon = await sheetsDb.setCurrentSalon(salon.salonId);
+            showScreen('admin');
+            loadAdminDashboard();
+        } else {
+            // 등록된 미용실 없음 - 등록 화면으로
+            showScreen('admin-register');
+        }
+    } catch (error) {
+        console.error('관리자 접근 오류:', error);
+        showScreen('admin-register');
+    }
+}
+
+function handleLogout() {
+    authManager.signOut();
+    currentSalon = null;
+    if (sheetsDb) {
+        sheetsDb.clearCurrentSalon();
+    }
+    showScreen('main');
+    showToast(t('logout'));
+}
+
+// ===== 미용실 등록 (온라인 모드) =====
+async function handleSalonRegistration(e) {
+    e.preventDefault();
+
+    if (!authManager.isSignedIn()) {
+        // 먼저 Google 로그인
+        try {
+            await authManager.signIn();
+        } catch (error) {
+            showToast(t('loginRequired'));
+            return;
+        }
+    }
+
+    const salonName = document.getElementById('register-salon-name').value.trim();
+    const region = document.getElementById('register-region').value.trim();
+
+    if (!salonName || !region) {
+        return;
+    }
+
+    try {
+        showLoading(t('loadingData'));
+
+        const salon = await sheetsDb.registerSalon({
+            salonName,
+            region
+        });
+
+        hideLoading();
+        showToast(t('registrationComplete'));
+
+        // 등록된 미용실로 설정
+        currentSalon = await sheetsDb.setCurrentSalon(salon.salonId);
+
+        // 관리자 대시보드로 이동
+        showScreen('admin');
+        loadAdminDashboard();
+    } catch (error) {
+        hideLoading();
+        console.error('미용실 등록 오류:', error);
+        showToast('등록 중 오류가 발생했습니다.');
+    }
+}
+
+// ===== 유틸리티 =====
+function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+        const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+    };
+}
+
+function showLoading(message) {
+    let overlay = document.querySelector('.loading-overlay');
+    if (!overlay) {
+        overlay = document.createElement('div');
+        overlay.className = 'loading-overlay';
+        overlay.innerHTML = `
+            <div class="loading-spinner"></div>
+            <div class="loading-text">${message || t('loadingData')}</div>
+        `;
+        document.body.appendChild(overlay);
+    }
+}
+
+function hideLoading() {
+    const overlay = document.querySelector('.loading-overlay');
+    if (overlay) {
+        overlay.remove();
+    }
+}
+
 // ===== 전역 함수 노출 =====
 window.showScreen = showScreen;
 window.showCustomerDetail = showCustomerDetail;
@@ -1240,3 +1620,5 @@ window.addTierInput = addTierInput;
 window.removeTierInput = removeTierInput;
 window.saveSettings = saveSettings;
 window.setLanguage = setLanguage;
+window.selectSalon = selectSalon;
+window.handleLogout = handleLogout;

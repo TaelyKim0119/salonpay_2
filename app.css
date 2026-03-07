@@ -1694,3 +1694,285 @@ h4 { font-size: 20px; font-weight: 600; letter-spacing: -0.2px; }
         grid-template-columns: repeat(3, 1fr);
     }
 }
+
+/* =====================================================
+   SALON SEARCH - 미용실 검색 화면
+   ===================================================== */
+.salon-search-form {
+    width: 100%;
+    max-width: 340px;
+    margin: 0 auto;
+    padding: var(--space-lg);
+}
+
+.salon-search-results {
+    margin: var(--space-lg) 0;
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.salon-result-item {
+    display: flex;
+    align-items: center;
+    padding: var(--space-md);
+    background: var(--bg-secondary);
+    border-radius: var(--radius-sm);
+    margin-bottom: var(--space-sm);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: 2px solid transparent;
+}
+
+.salon-result-item:hover {
+    border-color: var(--mango-primary);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+.salon-result-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: var(--radius-sm);
+    background: linear-gradient(135deg, var(--mango-light), var(--mango-primary));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    margin-right: var(--space-md);
+}
+
+.salon-result-info {
+    flex: 1;
+}
+
+.salon-result-name {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.salon-result-region {
+    font-size: 13px;
+    color: var(--text-tertiary);
+    margin-top: 2px;
+}
+
+.salon-search-empty {
+    text-align: center;
+    padding: var(--space-xl);
+    color: var(--text-tertiary);
+}
+
+.salon-search-empty .empty-icon {
+    font-size: 48px;
+    margin-bottom: var(--space-md);
+}
+
+/* Selected Salon Badge */
+.selected-salon-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: var(--space-xs) var(--space-md);
+    background: linear-gradient(135deg, var(--mango-light), var(--mango-primary));
+    border-radius: var(--radius-full);
+    margin-bottom: var(--space-md);
+    font-size: 14px;
+    font-weight: 500;
+    color: white;
+}
+
+.selected-salon-badge::before {
+    content: '📍';
+    margin-right: var(--space-xs);
+}
+
+/* =====================================================
+   ADMIN LOGIN - 관리자 로그인 화면
+   ===================================================== */
+.admin-login-form {
+    width: 100%;
+    max-width: 340px;
+    margin: 0 auto;
+    padding: var(--space-lg);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+}
+
+.btn-google {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-sm);
+    width: 100%;
+    padding: var(--space-md) var(--space-lg);
+    background: var(--bg-secondary);
+    border: 1px solid var(--ios-gray-4);
+    border-radius: var(--radius-sm);
+    font-size: 16px;
+    font-weight: 500;
+    color: var(--text-primary);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-google:hover {
+    background: var(--ios-gray-6);
+    box-shadow: var(--shadow-sm);
+}
+
+.btn-google img {
+    width: 20px;
+    height: 20px;
+}
+
+.login-divider {
+    display: flex;
+    align-items: center;
+    margin: var(--space-md) 0;
+}
+
+.login-divider::before,
+.login-divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--ios-gray-4);
+}
+
+.login-divider span {
+    padding: 0 var(--space-md);
+    color: var(--text-tertiary);
+    font-size: 14px;
+}
+
+.btn-text {
+    background: none;
+    border: none;
+    color: var(--mango-primary);
+    font-size: 15px;
+    font-weight: 500;
+    cursor: pointer;
+    padding: var(--space-sm);
+    transition: opacity 0.2s;
+}
+
+.btn-text:hover {
+    opacity: 0.8;
+}
+
+/* User Profile (Admin logged in) */
+.admin-profile {
+    display: flex;
+    align-items: center;
+    padding: var(--space-md);
+    background: var(--bg-secondary);
+    border-radius: var(--radius-sm);
+    margin-bottom: var(--space-md);
+}
+
+.admin-profile-picture {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    margin-right: var(--space-md);
+    object-fit: cover;
+}
+
+.admin-profile-info {
+    flex: 1;
+}
+
+.admin-profile-name {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.admin-profile-email {
+    font-size: 13px;
+    color: var(--text-tertiary);
+}
+
+.btn-logout {
+    padding: var(--space-xs) var(--space-sm);
+    background: var(--ios-gray-6);
+    border: none;
+    border-radius: var(--radius-xs);
+    font-size: 13px;
+    color: var(--text-secondary);
+    cursor: pointer;
+}
+
+/* Loading States */
+.loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.9);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+}
+
+.loading-spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid var(--ios-gray-5);
+    border-top-color: var(--mango-primary);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.loading-text {
+    margin-top: var(--space-md);
+    color: var(--text-secondary);
+    font-size: 15px;
+}
+
+/* Configuration Warning */
+.config-warning {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: var(--bg-primary);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: var(--space-xl);
+    text-align: center;
+    z-index: 10000;
+}
+
+.config-warning h2 {
+    color: var(--ios-red);
+    margin-bottom: var(--space-md);
+}
+
+.config-warning p {
+    color: var(--text-secondary);
+    max-width: 400px;
+    line-height: 1.6;
+}
+
+.config-warning code {
+    display: block;
+    margin-top: var(--space-md);
+    padding: var(--space-md);
+    background: var(--ios-gray-6);
+    border-radius: var(--radius-xs);
+    font-family: monospace;
+    font-size: 13px;
+    text-align: left;
+}
