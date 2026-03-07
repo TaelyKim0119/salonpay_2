@@ -149,7 +149,9 @@ function loadCustomerHistory() {
 
     historyList.innerHTML = visits.map(visit => `
         <div class="history-item">
-            <div class="history-icon earn">✨</div>
+            <div class="history-icon">
+                <img src="${getServiceIcon(visit.service)}" alt="${visit.service}">
+            </div>
             <div class="history-info">
                 <div class="history-service">${visit.service}</div>
                 <div class="history-date">${formatDate(visit.date)}</div>
@@ -686,7 +688,9 @@ function showCustomerDetail(customerId) {
     } else {
         historyContainer.innerHTML = visits.map(visit => `
             <div class="history-item">
-                <div class="history-icon earn">✨</div>
+                <div class="history-icon">
+                    <img src="${getServiceIcon(visit.service)}" alt="${visit.service}">
+                </div>
                 <div class="history-info">
                     <div class="history-service">${visit.service}</div>
                     <div class="history-date">${formatDate(visit.date)}</div>
@@ -703,6 +707,17 @@ function showCustomerDetail(customerId) {
 }
 
 // ===== 유틸리티 함수 =====
+function getServiceIcon(serviceName) {
+    if (serviceName.includes('염색') || serviceName.includes('컬러')) {
+        return '이미지/염색.png';
+    }
+    if (serviceName.includes('펌')) {
+        return '이미지/펌.png';
+    }
+    // 커트 또는 기타
+    return '이미지/커트.png';
+}
+
 function formatNumber(num) {
     return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
 }
