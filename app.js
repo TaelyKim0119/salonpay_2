@@ -86,25 +86,34 @@ const translations = {
         tenMillion: '천만',
         million: '백만',
         tenThousand: '만',
-        // 새로운 다테넌트 키
-        searchSalon: '미용실 찾기',
-        searchSalonDesc: '이용하시는 미용실을 검색하세요',
-        salonName: '미용실 이름',
-        salonSearchPlaceholder: '미용실 이름 또는 지역 검색',
+        // 새로운 멀티테넌트 키 (살롱 코드 시스템)
+        enterSalonCode: '미용실 코드 입력',
+        enterSalonCodeDesc: '미용실에서 받은 코드를 입력하세요',
+        salonCode: '미용실 코드',
+        salonCodePlaceholder: '예: SP-ABC123',
+        connect: '연결하기',
         changeSalon: '다른 미용실',
+        invalidSalonCode: '유효하지 않은 코드입니다',
+        salonConnected: '미용실 연결 완료!',
         adminLogin: '관리자 로그인',
         adminLoginDesc: 'Google 계정으로 로그인하세요',
+        adminLoginSubtext: '데이터는 내 Google Drive에 저장됩니다',
+        loginInfo: '기존 미용실이 있으면 자동으로 연결되고, 없으면 새로 등록할 수 있습니다.',
         googleSignIn: 'Google 로그인',
-        or: '또는',
-        newSalonRegister: '새 미용실 등록하기',
         registerSalon: '미용실 등록',
         registerSalonDesc: '새 미용실을 등록하세요',
+        salonName: '미용실 이름',
         salonNamePlaceholder: '예: 살롱헤어 강남점',
         region: '지역',
         regionPlaceholder: '예: 서울 강남 / Los Angeles',
         registerAndStart: '등록하고 시작하기',
-        noSalonFound: '검색 결과가 없습니다',
-        selectSalon: '미용실을 선택해주세요',
+        yourSalonCode: '미용실 코드',
+        shareSalonCode: '이 코드를 고객들에게 공유하세요',
+        copyCode: '복사',
+        codeCopied: '코드가 복사되었습니다!',
+        salonCodeInfo: '고객들은 이 코드로 미용실에 연결할 수 있습니다.',
+        goToDashboard: '관리자 대시보드로 이동',
+        existingSalonFound: '기존 미용실을 찾았습니다!',
         loadingData: '데이터 로딩 중...',
         loginRequired: 'Google 로그인이 필요합니다',
         registrationComplete: '등록이 완료되었습니다!',
@@ -189,25 +198,34 @@ const translations = {
         tenMillion: '0M',
         million: 'M',
         tenThousand: '0K',
-        // Multi-tenant keys
-        searchSalon: 'Find Salon',
-        searchSalonDesc: 'Search for your salon',
-        salonName: 'Salon Name',
-        salonSearchPlaceholder: 'Search salon name or region',
+        // Multi-tenant keys (Salon Code System)
+        enterSalonCode: 'Enter Salon Code',
+        enterSalonCodeDesc: 'Enter the code from your salon',
+        salonCode: 'Salon Code',
+        salonCodePlaceholder: 'e.g., SP-ABC123',
+        connect: 'Connect',
         changeSalon: 'Other Salon',
+        invalidSalonCode: 'Invalid code',
+        salonConnected: 'Salon connected!',
         adminLogin: 'Admin Login',
         adminLoginDesc: 'Sign in with Google',
+        adminLoginSubtext: 'Data is saved in your Google Drive',
+        loginInfo: 'If you have an existing salon, it will connect automatically. Otherwise, you can register a new one.',
         googleSignIn: 'Sign in with Google',
-        or: 'or',
-        newSalonRegister: 'Register New Salon',
         registerSalon: 'Register Salon',
         registerSalonDesc: 'Register your new salon',
+        salonName: 'Salon Name',
         salonNamePlaceholder: 'e.g., LA Hair Studio',
         region: 'Region',
         regionPlaceholder: 'e.g., Los Angeles',
         registerAndStart: 'Register & Start',
-        noSalonFound: 'No salon found',
-        selectSalon: 'Please select a salon',
+        yourSalonCode: 'Your Salon Code',
+        shareSalonCode: 'Share this code with your customers',
+        copyCode: 'Copy',
+        codeCopied: 'Code copied!',
+        salonCodeInfo: 'Customers can connect to your salon using this code.',
+        goToDashboard: 'Go to Dashboard',
+        existingSalonFound: 'Existing salon found!',
         loadingData: 'Loading...',
         loginRequired: 'Google login required',
         registrationComplete: 'Registration complete!',
@@ -292,25 +310,34 @@ const translations = {
         tenMillion: '千万',
         million: '百万',
         tenThousand: '万',
-        // マルチテナントキー
-        searchSalon: 'サロン検索',
-        searchSalonDesc: 'ご利用のサロンを検索してください',
-        salonName: 'サロン名',
-        salonSearchPlaceholder: 'サロン名または地域で検索',
+        // マルチテナントキー（サロンコードシステム）
+        enterSalonCode: 'サロンコード入力',
+        enterSalonCodeDesc: 'サロンで受け取ったコードを入力してください',
+        salonCode: 'サロンコード',
+        salonCodePlaceholder: '例: SP-ABC123',
+        connect: '接続',
         changeSalon: '他のサロン',
+        invalidSalonCode: '無効なコードです',
+        salonConnected: 'サロン接続完了！',
         adminLogin: '管理者ログイン',
         adminLoginDesc: 'Googleアカウントでログイン',
+        adminLoginSubtext: 'データはあなたのGoogle Driveに保存されます',
+        loginInfo: '既存のサロンがあれば自動的に接続されます。なければ新規登録できます。',
         googleSignIn: 'Googleログイン',
-        or: 'または',
-        newSalonRegister: '新しいサロンを登録',
         registerSalon: 'サロン登録',
         registerSalonDesc: '新しいサロンを登録してください',
+        salonName: 'サロン名',
         salonNamePlaceholder: '例: ヘアサロン渋谷店',
         region: '地域',
         regionPlaceholder: '例: 東京 渋谷',
         registerAndStart: '登録して開始',
-        noSalonFound: '検索結果がありません',
-        selectSalon: 'サロンを選択してください',
+        yourSalonCode: 'サロンコード',
+        shareSalonCode: 'このコードをお客様に共有してください',
+        copyCode: 'コピー',
+        codeCopied: 'コピーしました！',
+        salonCodeInfo: 'お客様はこのコードでサロンに接続できます。',
+        goToDashboard: 'ダッシュボードへ',
+        existingSalonFound: '既存のサロンが見つかりました！',
         loadingData: '読み込み中...',
         loginRequired: 'Googleログインが必要です',
         registrationComplete: '登録完了！',
@@ -395,25 +422,34 @@ const translations = {
         tenMillion: '千万',
         million: '百万',
         tenThousand: '万',
-        // 多租户键
-        searchSalon: '查找美发店',
-        searchSalonDesc: '搜索您的美发店',
-        salonName: '美发店名称',
-        salonSearchPlaceholder: '搜索美发店名称或地区',
+        // 多租户键（美发店代码系统）
+        enterSalonCode: '输入美发店代码',
+        enterSalonCodeDesc: '请输入美发店提供的代码',
+        salonCode: '美发店代码',
+        salonCodePlaceholder: '例: SP-ABC123',
+        connect: '连接',
         changeSalon: '其他美发店',
+        invalidSalonCode: '无效的代码',
+        salonConnected: '美发店连接成功！',
         adminLogin: '管理员登录',
         adminLoginDesc: '使用Google账号登录',
+        adminLoginSubtext: '数据保存在您的Google Drive中',
+        loginInfo: '如果您有现有的美发店，将自动连接。否则可以注册新的。',
         googleSignIn: 'Google登录',
-        or: '或',
-        newSalonRegister: '注册新美发店',
         registerSalon: '注册美发店',
         registerSalonDesc: '注册您的新美发店',
+        salonName: '美发店名称',
         salonNamePlaceholder: '例: LA美发店',
         region: '地区',
         regionPlaceholder: '例: 洛杉矶',
         registerAndStart: '注册并开始',
-        noSalonFound: '未找到美发店',
-        selectSalon: '请选择美发店',
+        yourSalonCode: '美发店代码',
+        shareSalonCode: '请与顾客分享此代码',
+        copyCode: '复制',
+        codeCopied: '已复制！',
+        salonCodeInfo: '顾客可以使用此代码连接到您的美发店。',
+        goToDashboard: '前往仪表板',
+        existingSalonFound: '找到现有美发店！',
         loadingData: '加载中...',
         loginRequired: '需要Google登录',
         registrationComplete: '注册完成！',
@@ -550,12 +586,12 @@ function initEventListeners() {
     // 메인 버튼
     document.getElementById('btn-customer').addEventListener('click', () => {
         if (isOnlineMode) {
-            // 온라인 모드: 미용실 검색 먼저
+            // 온라인 모드: 미용실 코드 입력 또는 저장된 미용실 사용
             if (currentSalon) {
                 showScreen('customer-login');
                 updateSelectedSalonBadge();
             } else {
-                showScreen('salon-search');
+                showScreen('salon-code');
             }
         } else {
             // 오프라인 모드: 바로 로그인
@@ -578,10 +614,10 @@ function initEventListeners() {
         }
     });
 
-    // 미용실 검색 입력
-    const salonSearchInput = document.getElementById('salon-search-input');
-    if (salonSearchInput) {
-        salonSearchInput.addEventListener('input', debounce(handleSalonSearch, 300));
+    // 미용실 코드 입력 폼
+    const salonCodeForm = document.getElementById('salon-code-form');
+    if (salonCodeForm) {
+        salonCodeForm.addEventListener('submit', handleSalonCodeSubmit);
     }
 
     // Google 로그인 버튼
@@ -1426,56 +1462,48 @@ function saveSettings() {
     renderPaymentPieChart();
 }
 
-// ===== 미용실 검색 (온라인 모드) =====
-async function handleSalonSearch(e) {
-    const query = e.target.value.trim();
-    const resultsContainer = document.getElementById('salon-search-results');
+// ===== 미용실 코드 연결 (온라인 모드) =====
+async function handleSalonCodeSubmit(e) {
+    e.preventDefault();
 
-    if (query.length < 1) {
-        resultsContainer.innerHTML = '';
+    const codeInput = document.getElementById('salon-code-input');
+    const code = codeInput.value.trim().toUpperCase();
+    const resultContainer = document.getElementById('salon-code-result');
+
+    if (!code) {
         return;
     }
 
     try {
-        const salons = await sheetsDb.searchSalons(query);
+        showLoading(t('loadingData'));
 
-        if (salons.length === 0) {
-            resultsContainer.innerHTML = `
-                <div class="salon-search-empty">
-                    <div class="empty-icon">🔍</div>
-                    <p>${t('noSalonFound')}</p>
+        const result = await sheetsDb.connectBySalonCode(code);
+
+        hideLoading();
+
+        if (result.success) {
+            currentSalon = result.salon;
+            showToast(t('salonConnected'));
+            updateSelectedSalonBadge();
+            showScreen('customer-login');
+            codeInput.value = '';
+        } else {
+            resultContainer.innerHTML = `
+                <div class="salon-code-error">
+                    <span class="error-icon">!</span>
+                    <span>${t('invalidSalonCode')}</span>
                 </div>
             `;
-            return;
         }
-
-        resultsContainer.innerHTML = salons.map(salon => `
-            <div class="salon-result-item" onclick="selectSalon('${salon.salonId}')">
-                <div class="salon-result-icon">💇</div>
-                <div class="salon-result-info">
-                    <div class="salon-result-name">${salon.salonName}</div>
-                    <div class="salon-result-region">${salon.region}</div>
-                </div>
-            </div>
-        `).join('');
     } catch (error) {
-        console.error('미용실 검색 오류:', error);
-        resultsContainer.innerHTML = `
-            <div class="salon-search-empty">
-                <p>검색 중 오류가 발생했습니다.</p>
+        hideLoading();
+        console.error('미용실 코드 연결 오류:', error);
+        resultContainer.innerHTML = `
+            <div class="salon-code-error">
+                <span class="error-icon">!</span>
+                <span>${t('invalidSalonCode')}</span>
             </div>
         `;
-    }
-}
-
-async function selectSalon(salonId) {
-    try {
-        currentSalon = await sheetsDb.setCurrentSalon(salonId);
-        updateSelectedSalonBadge();
-        showScreen('customer-login');
-    } catch (error) {
-        console.error('미용실 선택 오류:', error);
-        showToast(t('selectSalon'));
     }
 }
 
@@ -1503,20 +1531,25 @@ async function handleGoogleSignIn() {
 
 async function handleAdminAccess() {
     try {
-        // 이미 등록된 미용실이 있는지 확인
-        const email = authManager.getUserEmail();
-        const salon = await sheetsDb.getSalonByOwnerEmail(email);
+        showLoading(t('loadingData'));
 
-        if (salon) {
-            // 등록된 미용실 있음 - 해당 미용실로 설정
-            currentSalon = await sheetsDb.setCurrentSalon(salon.salonId);
+        // Google Drive에서 기존 미용실 스프레드시트 검색
+        const result = await sheetsDb.findMySalon();
+
+        hideLoading();
+
+        if (result) {
+            // 기존 미용실 있음
+            currentSalon = result;
+            showToast(t('existingSalonFound'));
             showScreen('admin');
             loadAdminDashboard();
         } else {
-            // 등록된 미용실 없음 - 등록 화면으로
+            // 미용실 없음 - 등록 화면으로
             showScreen('admin-register');
         }
     } catch (error) {
+        hideLoading();
         console.error('관리자 접근 오류:', error);
         showScreen('admin-register');
     }
@@ -1556,25 +1589,47 @@ async function handleSalonRegistration(e) {
     try {
         showLoading(t('loadingData'));
 
-        const salon = await sheetsDb.registerSalon({
-            salonName,
-            region
-        });
+        const result = await sheetsDb.createSalonSpreadsheet(salonName, region);
 
         hideLoading();
         showToast(t('registrationComplete'));
 
         // 등록된 미용실로 설정
-        currentSalon = await sheetsDb.setCurrentSalon(salon.salonId);
+        currentSalon = result;
 
-        // 관리자 대시보드로 이동
-        showScreen('admin');
-        loadAdminDashboard();
+        // 살롱 코드 표시 화면으로 이동
+        document.getElementById('display-salon-code').textContent = result.salonCode;
+        showScreen('salon-code-display');
     } catch (error) {
         hideLoading();
         console.error('미용실 등록 오류:', error);
         showToast('등록 중 오류가 발생했습니다.');
     }
+}
+
+// ===== 살롱 코드 복사 =====
+function copySalonCode() {
+    const codeElement = document.getElementById('display-salon-code');
+    const code = codeElement.textContent;
+
+    navigator.clipboard.writeText(code).then(() => {
+        showToast(t('codeCopied'));
+    }).catch(() => {
+        // 폴백: 직접 선택 및 복사
+        const range = document.createRange();
+        range.selectNode(codeElement);
+        window.getSelection().removeAllRanges();
+        window.getSelection().addRange(range);
+        document.execCommand('copy');
+        window.getSelection().removeAllRanges();
+        showToast(t('codeCopied'));
+    });
+}
+
+// ===== 관리자 대시보드로 이동 =====
+function goToAdminDashboard() {
+    showScreen('admin');
+    loadAdminDashboard();
 }
 
 // ===== 유틸리티 =====
@@ -1620,5 +1675,6 @@ window.addTierInput = addTierInput;
 window.removeTierInput = removeTierInput;
 window.saveSettings = saveSettings;
 window.setLanguage = setLanguage;
-window.selectSalon = selectSalon;
 window.handleLogout = handleLogout;
+window.copySalonCode = copySalonCode;
+window.goToAdminDashboard = goToAdminDashboard;

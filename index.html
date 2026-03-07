@@ -63,31 +63,34 @@
             </div>
         </div>
 
-        <!-- ===== 미용실 검색 화면 (고객용) ===== -->
-        <div id="salon-search" class="screen login-screen">
+        <!-- ===== 미용실 코드 입력 화면 (고객용) ===== -->
+        <div id="salon-code" class="screen login-screen">
             <div class="login-header">
-                <h2 data-i18n="searchSalon">미용실 찾기</h2>
-                <p data-i18n="searchSalonDesc">이용하시는 미용실을 검색하세요</p>
+                <h2 data-i18n="enterSalonCode">미용실 코드 입력</h2>
+                <p data-i18n="enterSalonCodeDesc">미용실에서 받은 코드를 입력하세요</p>
             </div>
 
-            <div class="salon-search-form">
+            <form id="salon-code-form" class="login-form">
                 <div class="input-group">
-                    <label for="salon-search-input" data-i18n="salonName">미용실 이름</label>
+                    <label for="salon-code-input" data-i18n="salonCode">미용실 코드</label>
                     <input
                         type="text"
-                        id="salon-search-input"
-                        data-i18n-placeholder="salonSearchPlaceholder"
-                        placeholder="미용실 이름 또는 지역 검색"
+                        id="salon-code-input"
+                        data-i18n-placeholder="salonCodePlaceholder"
+                        placeholder="예: SP-ABC123"
                         autocomplete="off"
+                        style="text-transform: uppercase; letter-spacing: 2px; font-weight: 600;"
+                        required
                     >
                 </div>
 
-                <div class="salon-search-results" id="salon-search-results">
+                <div id="salon-code-result" class="salon-code-result">
                     <!-- 동적으로 생성 -->
                 </div>
 
+                <button type="submit" class="btn-primary" data-i18n="connect">연결하기</button>
                 <button type="button" class="btn-secondary" onclick="showScreen('main')" data-i18n="back">돌아가기</button>
-            </div>
+            </form>
         </div>
 
         <!-- ===== 고객 로그인 화면 ===== -->
@@ -115,7 +118,7 @@
                 </div>
 
                 <button type="submit" class="btn-primary" data-i18n="search">조회하기</button>
-                <button type="button" class="btn-secondary" onclick="showScreen('salon-search')" data-i18n="changeSalon">다른 미용실</button>
+                <button type="button" class="btn-secondary" onclick="showScreen('salon-code')" data-i18n="changeSalon">다른 미용실</button>
             </form>
         </div>
 
@@ -124,6 +127,7 @@
             <div class="login-header">
                 <h2 data-i18n="adminLogin">관리자 로그인</h2>
                 <p data-i18n="adminLoginDesc">Google 계정으로 로그인하세요</p>
+                <p class="login-subtext" data-i18n="adminLoginSubtext">데이터는 내 Google Drive에 저장됩니다</p>
             </div>
 
             <div class="admin-login-form">
@@ -132,11 +136,9 @@
                     <span data-i18n="googleSignIn">Google 로그인</span>
                 </button>
 
-                <div class="login-divider">
-                    <span data-i18n="or">또는</span>
+                <div class="login-info-box">
+                    <p data-i18n="loginInfo">기존 미용실이 있으면 자동으로 연결되고, 없으면 새로 등록할 수 있습니다.</p>
                 </div>
-
-                <button type="button" class="btn-text" onclick="showScreen('admin-register')" data-i18n="newSalonRegister">새 미용실 등록하기</button>
 
                 <button type="button" class="btn-secondary" onclick="showScreen('main')" data-i18n="back">돌아가기</button>
             </div>
@@ -175,6 +177,25 @@
                 <button type="submit" class="btn-primary" data-i18n="registerAndStart">등록하고 시작하기</button>
                 <button type="button" class="btn-secondary" onclick="showScreen('admin-login')" data-i18n="back">돌아가기</button>
             </form>
+        </div>
+
+        <!-- ===== 미용실 코드 확인 화면 ===== -->
+        <div id="salon-code-display" class="screen login-screen">
+            <div class="login-header">
+                <h2 data-i18n="yourSalonCode">미용실 코드</h2>
+                <p data-i18n="shareSalonCode">이 코드를 고객들에게 공유하세요</p>
+            </div>
+
+            <div class="salon-code-box">
+                <div class="salon-code-value" id="display-salon-code">SP-ABC123</div>
+                <button class="btn-copy" onclick="copySalonCode()" data-i18n="copyCode">복사</button>
+            </div>
+
+            <div class="salon-code-info">
+                <p data-i18n="salonCodeInfo">고객들은 이 코드로 미용실에 연결할 수 있습니다.</p>
+            </div>
+
+            <button type="button" class="btn-primary" onclick="goToAdminDashboard()" data-i18n="goToDashboard">관리자 대시보드로 이동</button>
         </div>
 
         <!-- ===== 고객 대시보드 ===== -->

@@ -1976,3 +1976,112 @@ h4 { font-size: 20px; font-weight: 600; letter-spacing: -0.2px; }
     font-size: 13px;
     text-align: left;
 }
+
+/* ===== Salon Code System Styles ===== */
+
+/* Salon Code Input */
+#salon-code-input {
+    text-align: center;
+    font-size: 18px;
+}
+
+.salon-code-result {
+    min-height: 40px;
+    margin-bottom: var(--space-md);
+}
+
+.salon-code-error {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-sm);
+    padding: var(--space-md);
+    background: #FFF0F0;
+    border-radius: var(--radius-sm);
+    color: var(--ios-red);
+    font-size: 14px;
+}
+
+.salon-code-error .error-icon {
+    width: 20px;
+    height: 20px;
+    background: var(--ios-red);
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+/* Salon Code Display Box */
+.salon-code-box {
+    background: linear-gradient(135deg, var(--mango-light) 0%, var(--mango-primary) 100%);
+    border-radius: var(--radius-lg);
+    padding: var(--space-xl);
+    text-align: center;
+    margin: var(--space-xl) 0;
+    box-shadow: var(--shadow-lg);
+}
+
+.salon-code-value {
+    font-size: 32px;
+    font-weight: 800;
+    color: white;
+    letter-spacing: 4px;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    margin-bottom: var(--space-md);
+    font-family: 'SF Mono', 'Monaco', 'Consolas', monospace;
+}
+
+.btn-copy {
+    background: rgba(255, 255, 255, 0.3);
+    border: 2px solid rgba(255, 255, 255, 0.5);
+    color: white;
+    padding: var(--space-sm) var(--space-lg);
+    border-radius: var(--radius-full);
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-copy:hover {
+    background: rgba(255, 255, 255, 0.4);
+}
+
+.btn-copy:active {
+    transform: scale(0.95);
+}
+
+.salon-code-info {
+    text-align: center;
+    color: var(--text-secondary);
+    font-size: 14px;
+    margin-bottom: var(--space-xl);
+    padding: 0 var(--space-md);
+    line-height: 1.6;
+}
+
+/* Login Subtext */
+.login-subtext {
+    font-size: 13px;
+    color: var(--text-tertiary);
+    margin-top: var(--space-xs);
+}
+
+/* Login Info Box */
+.login-info-box {
+    background: var(--ios-gray-6);
+    border-radius: var(--radius-sm);
+    padding: var(--space-md);
+    margin: var(--space-lg) 0;
+    text-align: center;
+}
+
+.login-info-box p {
+    font-size: 13px;
+    color: var(--text-secondary);
+    line-height: 1.5;
+}

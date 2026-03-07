@@ -1,15 +1,17 @@
 /**
  * =====================================================
  * 살롱페이 v2.0 - Google Sheets Database
- * Google Sheets API를 사용한 데이터베이스 레이어
+ * 각 미용실이 자신의 Google 계정에 데이터 저장
+ * 마스터 스프레드시트 없음 - 완전 분산형
  * =====================================================
  */
 
 class GoogleSheetsDB {
     constructor(authManager) {
         this.authManager = authManager;
-        this.currentSalonId = null;
-        this.currentSpreadsheetId = null;
+        this.spreadsheetId = null;
+        this.salonCode = null;
+        this.salonInfo = null;
         this.cache = {};
         this.isInitialized = false;
     }
@@ -22,8 +24,7 @@ class GoogleSheetsDB {
             gapi.load('client', async () => {
                 try {
                     await gapi.client.init({
-                        apiKey: CONFIG.GOOGLE_API_KEY,
-                        discoveryDocs: [CONFIG.DISCOVERY_DOC]
+                        discoveryDocs: CONFIG.DISCOVERY_DOCS
                     });
                     this.isInitialized = true;
                     resolve();
@@ -34,157 +35,71 @@ class GoogleSheetsDB {
         });
     }
 
-    // ========== 미용실 관리 (마스터 시트) ==========
+    // ========== 미용실 코드 시스템 ==========
 
     /**
-     * 미용실 검색
-     * @param {string} query - 검색어 (이름 또는 지역)
+     * 스프레드시트 ID를 미용실 코드로 인코딩
+     * 코드 형식: SP-XXXXXX (6자리)
      */
-    async searchSalons(query) {
-        const cacheKey = `salons_search_${query}`;
-        const cached = this._getCache(cacheKey, CONFIG.CACHE.SALON_LIST);
-        if (cached) return cached;
+    encodeToSalonCode(spreadsheetId) {
+        // Base64 인코딩 후 축약
+        const encoded = btoa(spreadsheetId)
+            .replace(/[+/=]/g, '') // URL-safe 문자만
+            .substring(0, 8)
+            .toUpperCase();
+        return `${CONFIG.CODE_PREFIX}-${encoded}`;
+    }
 
+    /**
+     * 미용실 코드에서 스프레드시트 ID 디코딩
+     * 참고: 짧은 코드로는 완전 복원 불가 → 저장된 매핑 사용
+     */
+    getSavedSalonByCode(code) {
+        const savedSalons = this._getSavedSalons();
+        return savedSalons.find(s => s.code === code);
+    }
+
+    /**
+     * 로컬에 저장된 미용실 목록 (고객용)
+     */
+    _getSavedSalons() {
         try {
-            const response = await gapi.client.sheets.spreadsheets.values.get({
-                spreadsheetId: CONFIG.MASTER_SHEET_ID,
-                range: `${CONFIG.MASTER_SHEETS.SALONS}!A2:G`
-            });
-
-            const rows = response.result.values || [];
-            const salons = rows
-                .map(row => ({
-                    salonId: row[0],
-                    salonName: row[1],
-                    region: row[2],
-                    spreadsheetId: row[3],
-                    ownerEmail: row[4],
-                    createdAt: row[5],
-                    status: row[6] || 'active'
-                }))
-                .filter(salon =>
-                    salon.status === 'active' &&
-                    (salon.salonName.toLowerCase().includes(query.toLowerCase()) ||
-                     salon.region.toLowerCase().includes(query.toLowerCase()))
-                );
-
-            this._setCache(cacheKey, salons);
-            return salons;
-        } catch (error) {
-            console.error('미용실 검색 오류:', error);
-            throw error;
+            return JSON.parse(localStorage.getItem('salonpay_saved_salons') || '[]');
+        } catch {
+            return [];
         }
     }
 
     /**
-     * 모든 미용실 목록 가져오기
+     * 미용실을 로컬에 저장 (고객용)
      */
-    async getAllSalons() {
-        const cacheKey = 'salons_all';
-        const cached = this._getCache(cacheKey, CONFIG.CACHE.SALON_LIST);
-        if (cached) return cached;
+    _saveSalonLocally(salonData) {
+        const salons = this._getSavedSalons();
+        const existing = salons.findIndex(s => s.code === salonData.code);
 
-        try {
-            const response = await gapi.client.sheets.spreadsheets.values.get({
-                spreadsheetId: CONFIG.MASTER_SHEET_ID,
-                range: `${CONFIG.MASTER_SHEETS.SALONS}!A2:G`
-            });
-
-            const rows = response.result.values || [];
-            const salons = rows
-                .map(row => ({
-                    salonId: row[0],
-                    salonName: row[1],
-                    region: row[2],
-                    spreadsheetId: row[3],
-                    ownerEmail: row[4],
-                    createdAt: row[5],
-                    status: row[6] || 'active'
-                }))
-                .filter(salon => salon.status === 'active');
-
-            this._setCache(cacheKey, salons);
-            return salons;
-        } catch (error) {
-            console.error('미용실 목록 가져오기 오류:', error);
-            throw error;
+        if (existing >= 0) {
+            salons[existing] = salonData;
+        } else {
+            salons.unshift(salonData); // 최근 것을 앞에
         }
+
+        // 최대 10개만 저장
+        localStorage.setItem('salonpay_saved_salons', JSON.stringify(salons.slice(0, 10)));
     }
 
-    /**
-     * 이메일로 미용실 찾기 (관리자용)
-     */
-    async getSalonByOwnerEmail(email) {
-        try {
-            const salons = await this.getAllSalons();
-            return salons.find(s => s.ownerEmail === email);
-        } catch (error) {
-            console.error('미용실 찾기 오류:', error);
-            return null;
-        }
-    }
+    // ========== 미용실 등록 (관리자용) ==========
 
     /**
-     * 새 미용실 등록
+     * 새 미용실 스프레드시트 생성
+     * 관리자의 Google Drive에 저장됨
      */
-    async registerSalon(salonData) {
+    async createSalonSpreadsheet(salonName, region) {
         const accessToken = this.authManager.getAccessToken();
         if (!accessToken) {
             throw new Error('로그인이 필요합니다.');
         }
 
-        const salonId = this._generateId();
-        const createdAt = new Date().toISOString();
-
-        try {
-            // 1. 새 스프레드시트 생성
-            const spreadsheetId = await this._createSalonSpreadsheet(salonData.salonName, salonId);
-
-            // 2. 마스터 시트에 등록
-            await gapi.client.sheets.spreadsheets.values.append({
-                spreadsheetId: CONFIG.MASTER_SHEET_ID,
-                range: `${CONFIG.MASTER_SHEETS.SALONS}!A:G`,
-                valueInputOption: 'RAW',
-                insertDataOption: 'INSERT_ROWS',
-                resource: {
-                    values: [[
-                        salonId,
-                        salonData.salonName,
-                        salonData.region,
-                        spreadsheetId,
-                        this.authManager.getUserEmail(),
-                        createdAt,
-                        'active'
-                    ]]
-                }
-            }, {
-                headers: {
-                    'Authorization': `Bearer ${accessToken}`
-                }
-            });
-
-            // 캐시 무효화
-            this._clearCache('salons_');
-
-            return {
-                salonId,
-                spreadsheetId,
-                ...salonData
-            };
-        } catch (error) {
-            console.error('미용실 등록 오류:', error);
-            throw error;
-        }
-    }
-
-    /**
-     * 미용실 스프레드시트 생성
-     * @private
-     */
-    async _createSalonSpreadsheet(salonName, salonId) {
-        const accessToken = this.authManager.getAccessToken();
-
-        // 스프레드시트 생성 요청
+        // 1. 스프레드시트 생성
         const response = await fetch('https://sheets.googleapis.com/v4/spreadsheets', {
             method: 'POST',
             headers: {
@@ -193,14 +108,14 @@ class GoogleSheetsDB {
             },
             body: JSON.stringify({
                 properties: {
-                    title: `SalonPay_${salonId}_${salonName}`
+                    title: `살롱페이 - ${salonName}`
                 },
                 sheets: [
-                    { properties: { title: CONFIG.SALON_SHEETS.CUSTOMERS } },
-                    { properties: { title: CONFIG.SALON_SHEETS.VISITS } },
-                    { properties: { title: CONFIG.SALON_SHEETS.COUPONS } },
-                    { properties: { title: CONFIG.SALON_SHEETS.SETTINGS } },
-                    { properties: { title: CONFIG.SALON_SHEETS.SALON_INFO } }
+                    { properties: { title: CONFIG.SHEETS.SALON_INFO } },
+                    { properties: { title: CONFIG.SHEETS.CUSTOMERS } },
+                    { properties: { title: CONFIG.SHEETS.VISITS } },
+                    { properties: { title: CONFIG.SHEETS.COUPONS } },
+                    { properties: { title: CONFIG.SHEETS.SETTINGS } }
                 ]
             })
         });
@@ -210,65 +125,64 @@ class GoogleSheetsDB {
         }
 
         const data = await response.json();
-        const spreadsheetId = data.spreadsheetId;
+        this.spreadsheetId = data.spreadsheetId;
+        this.salonCode = this.encodeToSalonCode(this.spreadsheetId);
 
-        // 헤더 행 추가
-        await this._initializeSpreadsheetHeaders(spreadsheetId);
+        // 2. 초기 데이터 설정
+        await this._initializeSpreadsheet(salonName, region);
 
-        // 기본 설정 추가
-        await this._initializeSettings(spreadsheetId);
+        // 3. 로컬에 저장
+        this.salonInfo = {
+            code: this.salonCode,
+            spreadsheetId: this.spreadsheetId,
+            salonName,
+            region,
+            ownerEmail: this.authManager.getUserEmail()
+        };
 
-        // 미용실 정보 추가
-        await this._initializeSalonInfo(spreadsheetId, salonName);
+        this._saveSalonLocally(this.salonInfo);
+        this._saveCurrentSalon();
 
-        return spreadsheetId;
+        return this.salonInfo;
     }
 
     /**
-     * 스프레드시트 헤더 초기화
-     * @private
+     * 스프레드시트 초기화 (헤더, 설정 등)
      */
-    async _initializeSpreadsheetHeaders(spreadsheetId) {
+    async _initializeSpreadsheet(salonName, region) {
         const accessToken = this.authManager.getAccessToken();
 
         const requests = [
+            // 미용실 정보
             {
-                range: `${CONFIG.SALON_SHEETS.CUSTOMERS}!A1:I1`,
+                range: `${CONFIG.SHEETS.SALON_INFO}!A1:B6`,
+                values: [
+                    ['key', 'value'],
+                    ['salonName', salonName],
+                    ['region', region],
+                    ['salonCode', this.salonCode],
+                    ['ownerEmail', this.authManager.getUserEmail()],
+                    ['createdAt', new Date().toISOString()]
+                ]
+            },
+            // 고객 헤더
+            {
+                range: `${CONFIG.SHEETS.CUSTOMERS}!A1:I1`,
                 values: [['id', 'name', 'phone', 'birthday', 'points', 'visitCount', 'memo', 'createdAt', 'updatedAt']]
             },
+            // 방문 기록 헤더
             {
-                range: `${CONFIG.SALON_SHEETS.VISITS}!A1:K1`,
+                range: `${CONFIG.SHEETS.VISITS}!A1:K1`,
                 values: [['id', 'customerId', 'date', 'service', 'amount', 'discount', 'pointsUsed', 'pointsEarned', 'paymentMethod', 'finalAmount', 'createdAt']]
             },
+            // 쿠폰 헤더
             {
-                range: `${CONFIG.SALON_SHEETS.COUPONS}!A1:I1`,
+                range: `${CONFIG.SHEETS.COUPONS}!A1:I1`,
                 values: [['id', 'customerId', 'type', 'amount', 'isPercent', 'expiryDate', 'isUsed', 'usedAt', 'createdAt']]
-            }
-        ];
-
-        await gapi.client.sheets.spreadsheets.values.batchUpdate({
-            spreadsheetId,
-            resource: {
-                valueInputOption: 'RAW',
-                data: requests
-            }
-        }, {
-            headers: { 'Authorization': `Bearer ${accessToken}` }
-        });
-    }
-
-    /**
-     * 기본 설정 초기화
-     * @private
-     */
-    async _initializeSettings(spreadsheetId) {
-        const accessToken = this.authManager.getAccessToken();
-
-        await gapi.client.sheets.spreadsheets.values.update({
-            spreadsheetId,
-            range: `${CONFIG.SALON_SHEETS.SETTINGS}!A1:B5`,
-            valueInputOption: 'RAW',
-            resource: {
+            },
+            // 설정
+            {
+                range: `${CONFIG.SHEETS.SETTINGS}!A1:B5`,
                 values: [
                     ['key', 'value'],
                     ['pointEarnRate', CONFIG.DEFAULTS.POINT_EARN_RATE],
@@ -277,59 +191,116 @@ class GoogleSheetsDB {
                     ['cashTiers', JSON.stringify(CONFIG.DEFAULTS.CASH_TIERS)]
                 ]
             }
-        }, {
-            headers: { 'Authorization': `Bearer ${accessToken}` }
-        });
-    }
+        ];
 
-    /**
-     * 미용실 정보 초기화
-     * @private
-     */
-    async _initializeSalonInfo(spreadsheetId, salonName) {
-        const accessToken = this.authManager.getAccessToken();
-
-        await gapi.client.sheets.spreadsheets.values.update({
-            spreadsheetId,
-            range: `${CONFIG.SALON_SHEETS.SALON_INFO}!A1:B4`,
-            valueInputOption: 'RAW',
+        await gapi.client.sheets.spreadsheets.values.batchUpdate({
+            spreadsheetId: this.spreadsheetId,
             resource: {
-                values: [
-                    ['salonName', salonName],
-                    ['ownerEmail', this.authManager.getUserEmail()],
-                    ['createdAt', new Date().toISOString()],
-                    ['plan', 'free']
-                ]
+                valueInputOption: 'RAW',
+                data: requests
             }
-        }, {
-            headers: { 'Authorization': `Bearer ${accessToken}` }
         });
     }
 
-    // ========== 현재 미용실 설정 ==========
+    // ========== 미용실 연결 ==========
 
     /**
-     * 현재 작업할 미용실 설정
+     * 미용실 코드로 연결 (고객용)
      */
-    async setCurrentSalon(salonId) {
-        const salons = await this.getAllSalons();
-        const salon = salons.find(s => s.salonId === salonId);
-
-        if (!salon) {
-            throw new Error('미용실을 찾을 수 없습니다.');
+    async connectBySalonCode(code) {
+        // 저장된 미용실에서 찾기
+        const saved = this.getSavedSalonByCode(code);
+        if (saved) {
+            return this.connectToSalon(saved.spreadsheetId, saved);
         }
+        throw new Error('미용실을 찾을 수 없습니다. 코드를 확인해주세요.');
+    }
 
-        this.currentSalonId = salonId;
-        this.currentSpreadsheetId = salon.spreadsheetId;
+    /**
+     * 스프레드시트 ID로 직접 연결
+     */
+    async connectToSalon(spreadsheetId, cachedInfo = null) {
+        this.spreadsheetId = spreadsheetId;
 
-        // localStorage에 저장 (고객용)
-        localStorage.setItem('salonpay_current_salon', JSON.stringify({
-            salonId,
-            salonName: salon.salonName,
-            spreadsheetId: salon.spreadsheetId
-        }));
+        try {
+            // 미용실 정보 가져오기
+            const response = await gapi.client.sheets.spreadsheets.values.get({
+                spreadsheetId: this.spreadsheetId,
+                range: `${CONFIG.SHEETS.SALON_INFO}!A2:B6`
+            });
 
-        return salon;
+            const rows = response.result.values || [];
+            const info = {};
+            rows.forEach(row => {
+                if (row[0] && row[1]) {
+                    info[row[0]] = row[1];
+                }
+            });
+
+            this.salonCode = info.salonCode;
+            this.salonInfo = {
+                code: this.salonCode,
+                spreadsheetId: this.spreadsheetId,
+                salonName: info.salonName,
+                region: info.region,
+                ownerEmail: info.ownerEmail
+            };
+
+            // 로컬에 저장 (다음에 빠르게 접근)
+            this._saveSalonLocally(this.salonInfo);
+            this._saveCurrentSalon();
+
+            return this.salonInfo;
+        } catch (error) {
+            // API 키 없이는 공개 시트만 접근 가능
+            // 캐시된 정보 사용
+            if (cachedInfo) {
+                this.salonInfo = cachedInfo;
+                this.salonCode = cachedInfo.code;
+                this._saveCurrentSalon();
+                return this.salonInfo;
+            }
+            throw error;
+        }
+    }
+
+    /**
+     * 관리자의 기존 미용실 찾기
+     */
+    async findMySalon() {
+        const accessToken = this.authManager.getAccessToken();
+        if (!accessToken) return null;
+
+        try {
+            // Drive에서 "살롱페이" 스프레드시트 검색
+            const response = await fetch(
+                `https://www.googleapis.com/drive/v3/files?q=name contains '살롱페이' and mimeType='application/vnd.google-apps.spreadsheet'&fields=files(id,name)`,
+                {
+                    headers: { 'Authorization': `Bearer ${accessToken}` }
+                }
+            );
+
+            if (!response.ok) return null;
+
+            const data = await response.json();
+            if (data.files && data.files.length > 0) {
+                // 첫 번째 살롱페이 스프레드시트 사용
+                const file = data.files[0];
+                return this.connectToSalon(file.id);
+            }
+        } catch (error) {
+            console.error('미용실 찾기 오류:', error);
+        }
+        return null;
+    }
+
+    /**
+     * 현재 미용실 저장
+     */
+    _saveCurrentSalon() {
+        if (this.salonInfo) {
+            localStorage.setItem('salonpay_current_salon', JSON.stringify(this.salonInfo));
+        }
     }
 
     /**
@@ -339,10 +310,10 @@ class GoogleSheetsDB {
         try {
             const saved = localStorage.getItem('salonpay_current_salon');
             if (saved) {
-                const data = JSON.parse(saved);
-                this.currentSalonId = data.salonId;
-                this.currentSpreadsheetId = data.spreadsheetId;
-                return data;
+                this.salonInfo = JSON.parse(saved);
+                this.spreadsheetId = this.salonInfo.spreadsheetId;
+                this.salonCode = this.salonInfo.code;
+                return this.salonInfo;
             }
         } catch (error) {
             console.error('미용실 복원 오류:', error);
@@ -351,30 +322,36 @@ class GoogleSheetsDB {
     }
 
     /**
-     * 현재 미용실 클리어
+     * 연결 해제
      */
-    clearCurrentSalon() {
-        this.currentSalonId = null;
-        this.currentSpreadsheetId = null;
+    disconnect() {
+        this.spreadsheetId = null;
+        this.salonCode = null;
+        this.salonInfo = null;
         localStorage.removeItem('salonpay_current_salon');
+        this._clearCache();
+    }
+
+    /**
+     * 연결 상태 확인
+     */
+    isConnected() {
+        return !!this.spreadsheetId;
     }
 
     // ========== 고객 관리 ==========
 
-    /**
-     * 모든 고객 가져오기
-     */
     async getAllCustomers() {
-        this._ensureSalonSelected();
+        this._ensureConnected();
 
-        const cacheKey = `${this.currentSalonId}_customers`;
+        const cacheKey = 'customers';
         const cached = this._getCache(cacheKey, CONFIG.CACHE.CUSTOMER_DATA);
         if (cached) return cached;
 
         try {
             const response = await gapi.client.sheets.spreadsheets.values.get({
-                spreadsheetId: this.currentSpreadsheetId,
-                range: `${CONFIG.SALON_SHEETS.CUSTOMERS}!A2:I`
+                spreadsheetId: this.spreadsheetId,
+                range: `${CONFIG.SHEETS.CUSTOMERS}!A2:I`
             });
 
             const rows = response.result.values || [];
@@ -398,73 +375,55 @@ class GoogleSheetsDB {
         }
     }
 
-    /**
-     * 전화번호로 고객 찾기
-     */
     async getCustomerByPhone(phone) {
         const customers = await this.getAllCustomers();
         return customers.find(c => c.phone === phone);
     }
 
-    /**
-     * ID로 고객 찾기
-     */
     async getCustomerById(customerId) {
         const customers = await this.getAllCustomers();
         return customers.find(c => c.id === customerId);
     }
 
-    /**
-     * 고객 추가
-     */
     async addCustomer(customerData) {
-        this._ensureSalonSelected();
-        this._ensureAuthenticated();
+        this._ensureConnected();
 
         const accessToken = this.authManager.getAccessToken();
+        if (!accessToken) throw new Error('로그인이 필요합니다.');
+
         const id = this._generateId();
         const now = new Date().toISOString();
 
-        try {
-            await gapi.client.sheets.spreadsheets.values.append({
-                spreadsheetId: this.currentSpreadsheetId,
-                range: `${CONFIG.SALON_SHEETS.CUSTOMERS}!A:I`,
-                valueInputOption: 'RAW',
-                insertDataOption: 'INSERT_ROWS',
-                resource: {
-                    values: [[
-                        id,
-                        customerData.name,
-                        customerData.phone,
-                        customerData.birthday || '',
-                        customerData.points || 0,
-                        customerData.visitCount || 0,
-                        customerData.memo || '',
-                        now,
-                        now
-                    ]]
-                }
-            }, {
-                headers: { 'Authorization': `Bearer ${accessToken}` }
-            });
+        await gapi.client.sheets.spreadsheets.values.append({
+            spreadsheetId: this.spreadsheetId,
+            range: `${CONFIG.SHEETS.CUSTOMERS}!A:I`,
+            valueInputOption: 'RAW',
+            insertDataOption: 'INSERT_ROWS',
+            resource: {
+                values: [[
+                    id,
+                    customerData.name,
+                    customerData.phone,
+                    customerData.birthday || '',
+                    customerData.points || 0,
+                    customerData.visitCount || 0,
+                    customerData.memo || '',
+                    now,
+                    now
+                ]]
+            }
+        });
 
-            this._clearCache(`${this.currentSalonId}_customers`);
-
-            return { id, ...customerData, createdAt: now, updatedAt: now };
-        } catch (error) {
-            console.error('고객 추가 오류:', error);
-            throw error;
-        }
+        this._clearCache('customers');
+        return { id, ...customerData, createdAt: now, updatedAt: now };
     }
 
-    /**
-     * 고객 정보 업데이트
-     */
     async updateCustomer(customerId, updates) {
-        this._ensureSalonSelected();
-        this._ensureAuthenticated();
+        this._ensureConnected();
 
         const accessToken = this.authManager.getAccessToken();
+        if (!accessToken) throw new Error('로그인이 필요합니다.');
+
         const customers = await this.getAllCustomers();
         const customerIndex = customers.findIndex(c => c.id === customerId);
 
@@ -472,56 +431,45 @@ class GoogleSheetsDB {
             throw new Error('고객을 찾을 수 없습니다.');
         }
 
-        const rowNumber = customerIndex + 2; // 헤더 + 0-based index
+        const rowNumber = customerIndex + 2;
         const updatedCustomer = { ...customers[customerIndex], ...updates, updatedAt: new Date().toISOString() };
 
-        try {
-            await gapi.client.sheets.spreadsheets.values.update({
-                spreadsheetId: this.currentSpreadsheetId,
-                range: `${CONFIG.SALON_SHEETS.CUSTOMERS}!A${rowNumber}:I${rowNumber}`,
-                valueInputOption: 'RAW',
-                resource: {
-                    values: [[
-                        updatedCustomer.id,
-                        updatedCustomer.name,
-                        updatedCustomer.phone,
-                        updatedCustomer.birthday,
-                        updatedCustomer.points,
-                        updatedCustomer.visitCount,
-                        updatedCustomer.memo,
-                        updatedCustomer.createdAt,
-                        updatedCustomer.updatedAt
-                    ]]
-                }
-            }, {
-                headers: { 'Authorization': `Bearer ${accessToken}` }
-            });
+        await gapi.client.sheets.spreadsheets.values.update({
+            spreadsheetId: this.spreadsheetId,
+            range: `${CONFIG.SHEETS.CUSTOMERS}!A${rowNumber}:I${rowNumber}`,
+            valueInputOption: 'RAW',
+            resource: {
+                values: [[
+                    updatedCustomer.id,
+                    updatedCustomer.name,
+                    updatedCustomer.phone,
+                    updatedCustomer.birthday,
+                    updatedCustomer.points,
+                    updatedCustomer.visitCount,
+                    updatedCustomer.memo,
+                    updatedCustomer.createdAt,
+                    updatedCustomer.updatedAt
+                ]]
+            }
+        });
 
-            this._clearCache(`${this.currentSalonId}_customers`);
-
-            return updatedCustomer;
-        } catch (error) {
-            console.error('고객 업데이트 오류:', error);
-            throw error;
-        }
+        this._clearCache('customers');
+        return updatedCustomer;
     }
 
-    // ========== 방문 기록 관리 ==========
+    // ========== 방문 기록 ==========
 
-    /**
-     * 모든 방문 기록 가져오기
-     */
     async getAllVisits() {
-        this._ensureSalonSelected();
+        this._ensureConnected();
 
-        const cacheKey = `${this.currentSalonId}_visits`;
+        const cacheKey = 'visits';
         const cached = this._getCache(cacheKey, CONFIG.CACHE.VISITS);
         if (cached) return cached;
 
         try {
             const response = await gapi.client.sheets.spreadsheets.values.get({
-                spreadsheetId: this.currentSpreadsheetId,
-                range: `${CONFIG.SALON_SHEETS.VISITS}!A2:K`
+                spreadsheetId: this.spreadsheetId,
+                range: `${CONFIG.SHEETS.VISITS}!A2:K`
             });
 
             const rows = response.result.values || [];
@@ -547,9 +495,6 @@ class GoogleSheetsDB {
         }
     }
 
-    /**
-     * 고객별 방문 기록 가져오기
-     */
     async getVisitsByCustomerId(customerId) {
         const visits = await this.getAllVisits();
         return visits
@@ -557,77 +502,63 @@ class GoogleSheetsDB {
             .sort((a, b) => new Date(b.date) - new Date(a.date));
     }
 
-    /**
-     * 방문 기록 추가
-     */
     async addVisit(visitData) {
-        this._ensureSalonSelected();
-        this._ensureAuthenticated();
+        this._ensureConnected();
 
         const accessToken = this.authManager.getAccessToken();
+        if (!accessToken) throw new Error('로그인이 필요합니다.');
+
         const id = this._generateId();
         const now = new Date().toISOString();
 
-        // 적립금 계산
         const settings = await this.getSettings();
         const pointEarnRate = settings.pointEarnRate || CONFIG.DEFAULTS.POINT_EARN_RATE;
         const pointsEarned = Math.floor(visitData.finalAmount * (pointEarnRate / 100));
 
-        try {
-            await gapi.client.sheets.spreadsheets.values.append({
-                spreadsheetId: this.currentSpreadsheetId,
-                range: `${CONFIG.SALON_SHEETS.VISITS}!A:K`,
-                valueInputOption: 'RAW',
-                insertDataOption: 'INSERT_ROWS',
-                resource: {
-                    values: [[
-                        id,
-                        visitData.customerId,
-                        visitData.date,
-                        visitData.service,
-                        visitData.amount,
-                        visitData.discount || 0,
-                        visitData.pointsUsed || 0,
-                        pointsEarned,
-                        visitData.paymentMethod,
-                        visitData.finalAmount,
-                        now
-                    ]]
-                }
-            }, {
-                headers: { 'Authorization': `Bearer ${accessToken}` }
-            });
-
-            // 고객 포인트 및 방문 횟수 업데이트
-            const customer = await this.getCustomerById(visitData.customerId);
-            if (customer) {
-                await this.updateCustomer(visitData.customerId, {
-                    points: customer.points + pointsEarned - (visitData.pointsUsed || 0),
-                    visitCount: customer.visitCount + 1
-                });
+        await gapi.client.sheets.spreadsheets.values.append({
+            spreadsheetId: this.spreadsheetId,
+            range: `${CONFIG.SHEETS.VISITS}!A:K`,
+            valueInputOption: 'RAW',
+            insertDataOption: 'INSERT_ROWS',
+            resource: {
+                values: [[
+                    id,
+                    visitData.customerId,
+                    visitData.date,
+                    visitData.service,
+                    visitData.amount,
+                    visitData.discount || 0,
+                    visitData.pointsUsed || 0,
+                    pointsEarned,
+                    visitData.paymentMethod,
+                    visitData.finalAmount,
+                    now
+                ]]
             }
+        });
 
-            this._clearCache(`${this.currentSalonId}_visits`);
-
-            return { id, ...visitData, pointsEarned, createdAt: now };
-        } catch (error) {
-            console.error('방문 기록 추가 오류:', error);
-            throw error;
+        // 고객 포인트/방문 횟수 업데이트
+        const customer = await this.getCustomerById(visitData.customerId);
+        if (customer) {
+            await this.updateCustomer(visitData.customerId, {
+                points: customer.points + pointsEarned - (visitData.pointsUsed || 0),
+                visitCount: customer.visitCount + 1
+            });
         }
+
+        this._clearCache('visits');
+        return { id, ...visitData, pointsEarned, createdAt: now };
     }
 
-    // ========== 쿠폰 관리 ==========
+    // ========== 쿠폰 ==========
 
-    /**
-     * 모든 쿠폰 가져오기
-     */
     async getAllCoupons() {
-        this._ensureSalonSelected();
+        this._ensureConnected();
 
         try {
             const response = await gapi.client.sheets.spreadsheets.values.get({
-                spreadsheetId: this.currentSpreadsheetId,
-                range: `${CONFIG.SALON_SHEETS.COUPONS}!A2:I`
+                spreadsheetId: this.spreadsheetId,
+                range: `${CONFIG.SHEETS.COUPONS}!A2:I`
             });
 
             const rows = response.result.values || [];
@@ -648,13 +579,9 @@ class GoogleSheetsDB {
         }
     }
 
-    /**
-     * 고객별 활성 쿠폰 가져오기
-     */
     async getActiveCouponsByCustomerId(customerId) {
         const coupons = await this.getAllCoupons();
         const today = new Date().toISOString().split('T')[0];
-
         return coupons.filter(c =>
             c.customerId === customerId &&
             !c.isUsed &&
@@ -662,22 +589,19 @@ class GoogleSheetsDB {
         );
     }
 
-    // ========== 설정 관리 ==========
+    // ========== 설정 ==========
 
-    /**
-     * 설정 가져오기
-     */
     async getSettings() {
-        this._ensureSalonSelected();
+        this._ensureConnected();
 
-        const cacheKey = `${this.currentSalonId}_settings`;
+        const cacheKey = 'settings';
         const cached = this._getCache(cacheKey, CONFIG.CACHE.SETTINGS);
         if (cached) return cached;
 
         try {
             const response = await gapi.client.sheets.spreadsheets.values.get({
-                spreadsheetId: this.currentSpreadsheetId,
-                range: `${CONFIG.SALON_SHEETS.SETTINGS}!A2:B`
+                spreadsheetId: this.spreadsheetId,
+                range: `${CONFIG.SHEETS.SETTINGS}!A2:B`
             });
 
             const rows = response.result.values || [];
@@ -686,17 +610,7 @@ class GoogleSheetsDB {
             rows.forEach(row => {
                 const key = row[0];
                 let value = row[1];
-
-                // JSON 파싱 시도
-                try {
-                    value = JSON.parse(value);
-                } catch (e) {
-                    // 숫자 변환 시도
-                    if (!isNaN(value)) {
-                        value = parseFloat(value);
-                    }
-                }
-
+                try { value = JSON.parse(value); } catch { if (!isNaN(value)) value = parseFloat(value); }
                 settings[key] = value;
             });
 
@@ -708,15 +622,38 @@ class GoogleSheetsDB {
         }
     }
 
-    /**
-     * 대시보드 통계 가져오기
-     */
+    async updateSettings(newSettings) {
+        this._ensureConnected();
+
+        const accessToken = this.authManager.getAccessToken();
+        if (!accessToken) throw new Error('로그인이 필요합니다.');
+
+        const values = [
+            ['key', 'value'],
+            ['pointEarnRate', newSettings.pointEarnRate || CONFIG.DEFAULTS.POINT_EARN_RATE],
+            ['cashDiscountRate', newSettings.cashDiscountRate || CONFIG.DEFAULTS.CASH_DISCOUNT_RATE],
+            ['birthdayCouponAmount', newSettings.birthdayCouponAmount || CONFIG.DEFAULTS.BIRTHDAY_COUPON_AMOUNT],
+            ['cashTiers', JSON.stringify(newSettings.cashTiers || CONFIG.DEFAULTS.CASH_TIERS)]
+        ];
+
+        await gapi.client.sheets.spreadsheets.values.update({
+            spreadsheetId: this.spreadsheetId,
+            range: `${CONFIG.SHEETS.SETTINGS}!A1:B5`,
+            valueInputOption: 'RAW',
+            resource: { values }
+        });
+
+        this._clearCache('settings');
+    }
+
+    // ========== 통계 ==========
+
     async getDashboardStats() {
         const customers = await this.getAllCustomers();
         const visits = await this.getAllVisits();
 
         const today = new Date();
-        const thisMonth = today.toISOString().slice(0, 7); // YYYY-MM
+        const thisMonth = today.toISOString().slice(0, 7);
 
         const monthlyVisits = visits.filter(v => v.date.startsWith(thisMonth));
         const totalRevenue = monthlyVisits.reduce((sum, v) => sum + v.finalAmount, 0);
@@ -741,15 +678,9 @@ class GoogleSheetsDB {
         return 'id_' + Date.now().toString(36) + Math.random().toString(36).substr(2, 9);
     }
 
-    _ensureSalonSelected() {
-        if (!this.currentSpreadsheetId) {
-            throw new Error('미용실이 선택되지 않았습니다.');
-        }
-    }
-
-    _ensureAuthenticated() {
-        if (!this.authManager.isSignedIn()) {
-            throw new Error('로그인이 필요합니다.');
+    _ensureConnected() {
+        if (!this.spreadsheetId) {
+            throw new Error('미용실에 연결되지 않았습니다.');
         }
     }
 
@@ -762,18 +693,13 @@ class GoogleSheetsDB {
     }
 
     _setCache(key, data) {
-        this.cache[key] = {
-            data,
-            timestamp: Date.now()
-        };
+        this.cache[key] = { data, timestamp: Date.now() };
     }
 
     _clearCache(prefix) {
         if (prefix) {
             Object.keys(this.cache).forEach(key => {
-                if (key.startsWith(prefix)) {
-                    delete this.cache[key];
-                }
+                if (key.startsWith(prefix)) delete this.cache[key];
             });
         } else {
             this.cache = {};
