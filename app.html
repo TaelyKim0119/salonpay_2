@@ -19,10 +19,18 @@
 
         <!-- ===== 메인 화면 - iOS Style with Characters ===== -->
         <div id="main" class="screen main-screen active">
+            <!-- 언어 선택기 -->
+            <div class="lang-switcher">
+                <button class="lang-btn" onclick="setLanguage('ko')">🇰🇷</button>
+                <button class="lang-btn" onclick="setLanguage('en')">🇺🇸</button>
+                <button class="lang-btn" onclick="setLanguage('ja')">🇯🇵</button>
+                <button class="lang-btn" onclick="setLanguage('zh')">🇨🇳</button>
+            </div>
+
             <div class="main-logo">
                 <img src="이미지/logo.png" alt="살롱페이" class="logo-image">
-                <h1>살롱페이</h1>
-                <p>스마트한 미용실 적립금 관리</p>
+                <h1 data-i18n="appName">살롱페이</h1>
+                <p data-i18n="appSubtitle">스마트한 미용실 적립금 관리</p>
             </div>
 
             <div class="main-buttons">
@@ -31,8 +39,8 @@
                         <img src="이미지/customers.png" alt="고객">
                     </div>
                     <div class="main-btn-text">
-                        <div class="btn-title">고객</div>
-                        <div class="btn-subtitle">적립금 조회 및 사용</div>
+                        <div class="btn-title" data-i18n="customer">고객</div>
+                        <div class="btn-subtitle" data-i18n="customerDesc">적립금 조회 및 사용</div>
                     </div>
                     <span class="btn-arrow">›</span>
                 </button>
@@ -42,8 +50,8 @@
                         <img src="이미지/관리자2.png" alt="관리자">
                     </div>
                     <div class="main-btn-text">
-                        <div class="btn-title">관리자</div>
-                        <div class="btn-subtitle">고객 관리 및 통계</div>
+                        <div class="btn-title" data-i18n="admin">관리자</div>
+                        <div class="btn-subtitle" data-i18n="adminDesc">고객 관리 및 통계</div>
                     </div>
                     <span class="btn-arrow">›</span>
                 </button>
@@ -53,16 +61,17 @@
         <!-- ===== 고객 로그인 화면 ===== -->
         <div id="customer-login" class="screen login-screen">
             <div class="login-header">
-                <h2>안녕하세요!</h2>
-                <p>전화번호로 간편하게 조회하세요</p>
+                <h2 data-i18n="hello">안녕하세요!</h2>
+                <p data-i18n="phonePrompt">전화번호로 간편하게 조회하세요</p>
             </div>
 
             <form id="login-form" class="login-form">
                 <div class="input-group">
-                    <label for="phone-input">전화번호</label>
+                    <label for="phone-input" data-i18n="phoneLabel">전화번호</label>
                     <input
                         type="tel"
                         id="phone-input"
+                        data-i18n-placeholder="phonePlaceholder"
                         placeholder="010-0000-0000"
                         maxlength="13"
                         autocomplete="tel"
@@ -70,8 +79,8 @@
                     >
                 </div>
 
-                <button type="submit" class="btn-primary">조회하기</button>
-                <button type="button" class="btn-secondary" onclick="showScreen('main')">돌아가기</button>
+                <button type="submit" class="btn-primary" data-i18n="search">조회하기</button>
+                <button type="button" class="btn-secondary" onclick="showScreen('main')" data-i18n="back">돌아가기</button>
             </form>
         </div>
 
@@ -79,7 +88,7 @@
         <div id="customer-dashboard" class="screen customer-dashboard">
             <header class="app-header">
                 <button class="header-back">←</button>
-                <h1 class="header-title">내 적립금</h1>
+                <h1 class="header-title" data-i18n="myPoints">내 적립금</h1>
                 <div class="header-action"></div>
             </header>
 
@@ -92,7 +101,7 @@
             <div class="balance-card">
                 <div class="customer-name" id="customer-name-display">김민지 님</div>
                 <div class="customer-phone" id="customer-phone-display">010-1234-5678</div>
-                <div class="balance-label">사용 가능한 적립금</div>
+                <div class="balance-label" data-i18n="availablePoints">사용 가능한 적립금</div>
                 <div class="balance-amount"><span id="customer-balance">0</span> <span>P</span></div>
             </div>
 
@@ -102,14 +111,14 @@
                     <div class="card-icon">
                         <img src="이미지/돈.png" alt="적립금">
                     </div>
-                    <div class="card-label">총 적립금</div>
+                    <div class="card-label" data-i18n="totalPoints">총 적립금</div>
                     <div class="card-value"><span id="customer-points-card">0</span> <span>P</span></div>
                 </div>
                 <div class="info-card">
                     <div class="card-icon">
                         <img src="이미지/쿠폰.png" alt="쿠폰">
                     </div>
-                    <div class="card-label">사용 가능 쿠폰</div>
+                    <div class="card-label" data-i18n="availableCoupons">사용 가능 쿠폰</div>
                     <div class="card-value"><span id="customer-coupons-count">0</span> <span>장</span></div>
                 </div>
             </div>

@@ -5,6 +5,282 @@
  * =====================================================
  */
 
+// ===== 다국어 지원 (i18n) =====
+const translations = {
+    ko: {
+        appName: '살롱페이',
+        appSubtitle: '스마트한 미용실 적립금 관리',
+        customer: '고객',
+        customerDesc: '적립금 조회 및 사용',
+        admin: '관리자',
+        adminDesc: '고객 관리 및 통계',
+        hello: '안녕하세요!',
+        phonePrompt: '전화번호로 간편하게 조회하세요',
+        phoneLabel: '전화번호',
+        phonePlaceholder: '010-0000-0000',
+        search: '조회하기',
+        back: '돌아가기',
+        myPoints: '내 적립금',
+        availablePoints: '사용 가능한 적립금',
+        totalPoints: '총 적립금',
+        availableCoupons: '사용 가능 쿠폰',
+        recentHistory: '최근 이용 내역',
+        noHistory: '아직 이용 내역이 없어요',
+        totalCustomers: '총 고객',
+        birthdayMonth: '이달 생일',
+        returnRate: '재방문율',
+        searchPlaceholder: '이름 또는 전화번호로 검색',
+        customerDB: '고객 DB',
+        birthdayManage: '생일관리',
+        analysis: '분석',
+        upcomingBirthday: '다가오는 생일',
+        monthlyRevenue: '월별 매출 추이',
+        serviceRatio: '서비스별 매출 비중',
+        cashTierRatio: '현금 결제 구간별 비중',
+        settings: '설정',
+        cashTierSettings: '현금 결제 구간 설정',
+        cashTierDesc: '현금 결제 분석에 사용할 금액 구간을 설정하세요',
+        addTier: '+ 구간 추가',
+        cancel: '취소',
+        save: '저장',
+        tenThousandWon: '만원',
+        visits: '방문',
+        coupons: '쿠폰',
+        points: '적립금',
+        customerMemo: '고객 메모',
+        noMemo: '메모가 없습니다.',
+        visitHistory: '방문 기록',
+        today: '오늘!',
+        magic: '매직',
+        perm: '펌',
+        etc: '기타',
+        monthlyRevenueTitle: '이번 달 매출',
+        cashRatio: '현금 결제 비율',
+        savedFees: '카드 수수료 절약',
+        unusedPoints: '총 미사용 적립금',
+        avgPoints: '고객 평균',
+        vipCustomers: 'VIP 고객',
+        vipDesc: '방문 10회 이상 고객',
+        yearTotal: '연간 총 매출',
+        monthAvg: '월 평균',
+        totalCash: '총 현금결제',
+        won: '원',
+        count: '건',
+        people: '명',
+        sheet: '장'
+    },
+    en: {
+        appName: 'SalonPay',
+        appSubtitle: 'Smart Salon Points Management',
+        customer: 'Customer',
+        customerDesc: 'Check & Use Points',
+        admin: 'Admin',
+        adminDesc: 'Customer Management & Stats',
+        hello: 'Hello!',
+        phonePrompt: 'Check with your phone number',
+        phoneLabel: 'Phone Number',
+        phonePlaceholder: '010-0000-0000',
+        search: 'Search',
+        back: 'Back',
+        myPoints: 'My Points',
+        availablePoints: 'Available Points',
+        totalPoints: 'Total Points',
+        availableCoupons: 'Available Coupons',
+        recentHistory: 'Recent History',
+        noHistory: 'No history yet',
+        totalCustomers: 'Customers',
+        birthdayMonth: 'Birthdays',
+        returnRate: 'Return Rate',
+        searchPlaceholder: 'Search by name or phone',
+        customerDB: 'Customer DB',
+        birthdayManage: 'Birthday',
+        analysis: 'Analysis',
+        upcomingBirthday: 'Upcoming Birthdays',
+        monthlyRevenue: 'Monthly Revenue',
+        serviceRatio: 'Service Revenue Ratio',
+        cashTierRatio: 'Cash Payment Tiers',
+        settings: 'Settings',
+        cashTierSettings: 'Cash Tier Settings',
+        cashTierDesc: 'Set amount tiers for cash payment analysis',
+        addTier: '+ Add Tier',
+        cancel: 'Cancel',
+        save: 'Save',
+        tenThousandWon: '0K KRW',
+        visits: 'Visits',
+        coupons: 'Coupons',
+        points: 'Points',
+        customerMemo: 'Customer Memo',
+        noMemo: 'No memo',
+        visitHistory: 'Visit History',
+        today: 'Today!',
+        magic: 'Straight',
+        perm: 'Perm',
+        etc: 'Etc',
+        monthlyRevenueTitle: 'Monthly Revenue',
+        cashRatio: 'Cash Payment Ratio',
+        savedFees: 'Saved Card Fees',
+        unusedPoints: 'Total Unused Points',
+        avgPoints: 'Customer Average',
+        vipCustomers: 'VIP Customers',
+        vipDesc: '10+ visits',
+        yearTotal: 'Annual Total',
+        monthAvg: 'Monthly Avg',
+        totalCash: 'Total Cash',
+        won: 'KRW',
+        count: '',
+        people: '',
+        sheet: ''
+    },
+    ja: {
+        appName: 'サロンペイ',
+        appSubtitle: 'スマートなサロンポイント管理',
+        customer: 'お客様',
+        customerDesc: 'ポイント照会・使用',
+        admin: '管理者',
+        adminDesc: '顧客管理・統計',
+        hello: 'こんにちは！',
+        phonePrompt: '電話番号で簡単に照会',
+        phoneLabel: '電話番号',
+        phonePlaceholder: '010-0000-0000',
+        search: '照会する',
+        back: '戻る',
+        myPoints: 'マイポイント',
+        availablePoints: '利用可能ポイント',
+        totalPoints: '総ポイント',
+        availableCoupons: '利用可能クーポン',
+        recentHistory: '最近の利用履歴',
+        noHistory: 'まだ利用履歴がありません',
+        totalCustomers: '総顧客',
+        birthdayMonth: '今月の誕生日',
+        returnRate: 'リピート率',
+        searchPlaceholder: '名前または電話番号で検索',
+        customerDB: '顧客DB',
+        birthdayManage: '誕生日管理',
+        analysis: '分析',
+        upcomingBirthday: '近日誕生日',
+        monthlyRevenue: '月別売上推移',
+        serviceRatio: 'サービス別売上比率',
+        cashTierRatio: '現金決済区間別比率',
+        settings: '設定',
+        cashTierSettings: '現金決済区間設定',
+        cashTierDesc: '現金決済分析に使用する金額区間を設定',
+        addTier: '+ 区間追加',
+        cancel: 'キャンセル',
+        save: '保存',
+        tenThousandWon: '万ウォン',
+        visits: '訪問',
+        coupons: 'クーポン',
+        points: 'ポイント',
+        customerMemo: 'お客様メモ',
+        noMemo: 'メモがありません',
+        visitHistory: '訪問履歴',
+        today: '今日！',
+        magic: 'マジック',
+        perm: 'パーマ',
+        etc: 'その他',
+        monthlyRevenueTitle: '今月の売上',
+        cashRatio: '現金決済比率',
+        savedFees: 'カード手数料節約',
+        unusedPoints: '未使用ポイント合計',
+        avgPoints: '顧客平均',
+        vipCustomers: 'VIP顧客',
+        vipDesc: '訪問10回以上',
+        yearTotal: '年間総売上',
+        monthAvg: '月平均',
+        totalCash: '現金決済合計',
+        won: 'ウォン',
+        count: '件',
+        people: '名',
+        sheet: '枚'
+    },
+    zh: {
+        appName: 'SalonPay',
+        appSubtitle: '智能美发店积分管理',
+        customer: '顾客',
+        customerDesc: '积分查询与使用',
+        admin: '管理员',
+        adminDesc: '顾客管理与统计',
+        hello: '您好！',
+        phonePrompt: '用手机号码轻松查询',
+        phoneLabel: '手机号码',
+        phonePlaceholder: '010-0000-0000',
+        search: '查询',
+        back: '返回',
+        myPoints: '我的积分',
+        availablePoints: '可用积分',
+        totalPoints: '总积分',
+        availableCoupons: '可用优惠券',
+        recentHistory: '最近使用记录',
+        noHistory: '暂无使用记录',
+        totalCustomers: '总顾客',
+        birthdayMonth: '本月生日',
+        returnRate: '回头率',
+        searchPlaceholder: '按姓名或手机号搜索',
+        customerDB: '顾客数据库',
+        birthdayManage: '生日管理',
+        analysis: '分析',
+        upcomingBirthday: '即将生日',
+        monthlyRevenue: '月度营收趋势',
+        serviceRatio: '服务营收比例',
+        cashTierRatio: '现金支付区间比例',
+        settings: '设置',
+        cashTierSettings: '现金支付区间设置',
+        cashTierDesc: '设置现金支付分析的金额区间',
+        addTier: '+ 添加区间',
+        cancel: '取消',
+        save: '保存',
+        tenThousandWon: '万韩元',
+        visits: '访问',
+        coupons: '优惠券',
+        points: '积分',
+        customerMemo: '顾客备注',
+        noMemo: '暂无备注',
+        visitHistory: '访问记录',
+        today: '今天！',
+        magic: '拉直',
+        perm: '烫发',
+        etc: '其他',
+        monthlyRevenueTitle: '本月营收',
+        cashRatio: '现金支付比例',
+        savedFees: '节省刷卡手续费',
+        unusedPoints: '未使用积分总计',
+        avgPoints: '顾客平均',
+        vipCustomers: 'VIP顾客',
+        vipDesc: '访问10次以上',
+        yearTotal: '年度总营收',
+        monthAvg: '月均',
+        totalCash: '现金支付总计',
+        won: '韩元',
+        count: '笔',
+        people: '人',
+        sheet: '张'
+    }
+};
+
+let currentLang = localStorage.getItem('salonpay_lang') || 'ko';
+
+function t(key) {
+    return translations[currentLang]?.[key] || translations['ko'][key] || key;
+}
+
+function setLanguage(lang) {
+    currentLang = lang;
+    localStorage.setItem('salonpay_lang', lang);
+    applyTranslations();
+}
+
+function applyTranslations() {
+    // 모든 data-i18n 속성을 가진 요소 번역
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        el.textContent = t(key);
+    });
+    document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+        const key = el.getAttribute('data-i18n-placeholder');
+        el.placeholder = t(key);
+    });
+}
+
 // ===== 앱 초기화 =====
 let db;
 let currentCustomer = null;
@@ -19,6 +295,9 @@ document.addEventListener('DOMContentLoaded', () => {
         loadSampleData();
         db = new SalonPayDB();
     }
+
+    // 다국어 적용
+    applyTranslations();
 
     // 이벤트 리스너 설정
     initEventListeners();
@@ -868,3 +1147,4 @@ window.closeSettings = closeSettings;
 window.addTierInput = addTierInput;
 window.removeTierInput = removeTierInput;
 window.saveSettings = saveSettings;
+window.setLanguage = setLanguage;

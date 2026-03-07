@@ -188,6 +188,37 @@ h4 { font-size: 20px; font-weight: 600; letter-spacing: -0.2px; }
     max-width: 340px;
 }
 
+/* Language Switcher */
+.lang-switcher {
+    position: absolute;
+    top: var(--space-md);
+    right: var(--space-md);
+    display: flex;
+    gap: var(--space-xs);
+    z-index: 10;
+}
+
+.lang-btn {
+    width: 36px;
+    height: 36px;
+    border: none;
+    background: var(--bg-secondary);
+    border-radius: var(--radius-xs);
+    font-size: 20px;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+    box-shadow: var(--shadow-sm);
+}
+
+.lang-btn:hover {
+    transform: scale(1.1);
+    box-shadow: var(--shadow-md);
+}
+
+.lang-btn:active {
+    transform: scale(0.95);
+}
+
 .main-btn {
     display: flex;
     align-items: center;
@@ -217,8 +248,8 @@ h4 { font-size: 20px; font-weight: 600; letter-spacing: -0.2px; }
 }
 
 .main-btn .btn-icon {
-    width: 90px;
-    height: 90px;
+    width: 135px;
+    height: 135px;
     border-radius: var(--radius-sm);
     display: flex;
     align-items: center;
@@ -1466,8 +1497,8 @@ h4 { font-size: 20px; font-weight: 600; letter-spacing: -0.2px; }
     }
 
     .main-btn .btn-icon {
-        width: 140px;
-        height: 140px;
+        width: 210px;
+        height: 210px;
         margin-right: 0;
         margin-bottom: var(--space-md);
     }
