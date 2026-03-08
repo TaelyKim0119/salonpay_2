@@ -1687,6 +1687,25 @@ function goToAdminDashboard() {
     loadAdminDashboard();
 }
 
+// ===== 공유 링크 보기 =====
+function showShareLink() {
+    if (!currentSalon || !currentSalon.spreadsheetId) {
+        showToast('미용실 정보를 찾을 수 없습니다.');
+        return;
+    }
+
+    const shareLink = `${window.location.origin}?salon=${currentSalon.spreadsheetId}`;
+
+    // 링크 표시 및 복사
+    if (confirm(`공유 링크:\n${shareLink}\n\n복사하시겠습니까?`)) {
+        navigator.clipboard.writeText(shareLink).then(() => {
+            showToast(t('codeCopied'));
+        }).catch(() => {
+            prompt('이 링크를 복사하세요:', shareLink);
+        });
+    }
+}
+
 // ===== 유틸리티 =====
 function debounce(func, wait) {
     let timeout;
@@ -1733,3 +1752,4 @@ window.setLanguage = setLanguage;
 window.handleLogout = handleLogout;
 window.copySalonLink = copySalonLink;
 window.goToAdminDashboard = goToAdminDashboard;
+window.showShareLink = showShareLink;
