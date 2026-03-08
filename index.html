@@ -183,16 +183,17 @@
         <div id="salon-code-display" class="screen login-screen">
             <div class="login-header">
                 <h2 data-i18n="yourSalonCode">미용실 코드</h2>
-                <p data-i18n="shareSalonCode">이 코드를 고객들에게 공유하세요</p>
+                <p data-i18n="shareSalonCode">아래 링크를 고객들에게 공유하세요</p>
             </div>
 
             <div class="salon-code-box">
-                <div class="salon-code-value" id="display-salon-code">SP-ABC123</div>
-                <button class="btn-copy" onclick="copySalonCode()" data-i18n="copyCode">복사</button>
+                <div class="salon-code-label">공유 링크</div>
+                <div class="salon-code-value" id="display-salon-link" style="font-size: 14px; word-break: break-all;"></div>
+                <button class="btn-copy" onclick="copySalonLink()" data-i18n="copyCode">링크 복사</button>
             </div>
 
             <div class="salon-code-info">
-                <p data-i18n="salonCodeInfo">고객들은 이 코드로 미용실에 연결할 수 있습니다.</p>
+                <p data-i18n="salonCodeInfo">고객들은 이 링크로 미용실에 바로 연결할 수 있습니다.</p>
             </div>
 
             <button type="button" class="btn-primary" onclick="goToAdminDashboard()" data-i18n="goToDashboard">관리자 대시보드로 이동</button>

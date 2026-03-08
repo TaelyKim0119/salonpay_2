@@ -512,6 +512,9 @@ document.addEventListener('DOMContentLoaded', async () => {
             // 온라인 모드 초기화
             await initOnlineMode();
             isOnlineMode = true;
+
+            // URL 파라미터 처리 (공유 링크로 접속한 경우)
+            await handleUrlParams();
         } catch (error) {
             console.error('온라인 모드 초기화 실패:', error);
             // 오프라인 모드로 폴백
@@ -522,8 +525,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         initOfflineMode();
     }
 
-    // 메인 화면 표시
-    showScreen('main');
+    // URL 파라미터로 이미 화면 전환된 경우가 아니면 메인 화면 표시
+    if (!document.querySelector('.screen.active') || document.querySelector('.screen.active').id === 'main') {
+        showScreen('main');
+    }
 });
 
 // ===== 온라인 모드 초기화 =====
@@ -758,34 +763,52 @@ function loadCustomerHistory() {
 }
 
 // ===== 관리자 대시보드 로드 =====
-function loadAdminDashboard() {
-    const stats = db.getDashboardStats();
-    const customers = db.getAllCustomers();
+async function loadAdminDashboard() {
+    try {
+        let stats, customers;
 
-    // 통계 업데이트
-    document.getElementById('stat-total-customers').textContent = customers.length;
+        if (isOnlineMode && sheetsDb && sheetsDb.isConnected()) {
+            // 온라인 모드: Google Sheets에서 데이터 로드
+            stats = await sheetsDb.getDashboardStats();
+            customers = await sheetsDb.getAllCustomers();
+        } else if (db) {
+            // 오프라인 모드: localStorage에서 데이터 로드
+            stats = db.getDashboardStats();
+            customers = db.getAllCustomers();
+        } else {
+            // 데이터 없음
+            stats = { totalCustomers: 0, monthlyVisits: 0, totalRevenue: 0, cashRatio: 0, savedFees: 0 };
+            customers = [];
+        }
 
-    // 이번 달 생일
-    const today = new Date();
-    const thisMonth = String(today.getMonth() + 1).padStart(2, '0');
-    const birthdayThisMonth = customers.filter(c => c.birthday && c.birthday.startsWith(thisMonth));
-    document.getElementById('stat-birthday-month').textContent = birthdayThisMonth.length;
+        // 통계 업데이트
+        document.getElementById('stat-total-customers').textContent = customers.length;
 
-    // 재방문율 계산 (방문 2회 이상)
-    const returningCustomers = customers.filter(c => c.visitCount >= 2);
-    const returnRate = customers.length > 0
-        ? Math.round((returningCustomers.length / customers.length) * 100)
-        : 0;
-    document.getElementById('stat-return-rate').textContent = `${returnRate}%`;
+        // 이번 달 생일
+        const today = new Date();
+        const thisMonth = String(today.getMonth() + 1).padStart(2, '0');
+        const birthdayThisMonth = customers.filter(c => c.birthday && c.birthday.startsWith(thisMonth));
+        document.getElementById('stat-birthday-month').textContent = birthdayThisMonth.length;
 
-    // 고객 목록 로드
-    loadCustomerList(customers);
+        // 재방문율 계산 (방문 2회 이상)
+        const returningCustomers = customers.filter(c => c.visitCount >= 2);
+        const returnRate = customers.length > 0
+            ? Math.round((returningCustomers.length / customers.length) * 100)
+            : 0;
+        document.getElementById('stat-return-rate').textContent = `${returnRate}%`;
 
-    // 생일 목록 로드
-    loadBirthdayList();
+        // 고객 목록 로드
+        loadCustomerList(customers);
 
-    // 분석 데이터 로드
-    loadAnalysisData(stats);
+        // 생일 목록 로드
+        loadBirthdayList();
+
+        // 분석 데이터 로드
+        loadAnalysisData(stats);
+    } catch (error) {
+        console.error('대시보드 로드 오류:', error);
+        showToast('데이터 로드 중 오류가 발생했습니다.');
+    }
 }
 
 // ===== 고객 목록 로드 =====
@@ -1603,8 +1626,9 @@ async function handleSalonRegistration(e) {
         // 등록된 미용실로 설정
         currentSalon = result;
 
-        // 살롱 코드 표시 화면으로 이동
-        document.getElementById('display-salon-code').textContent = result.code;
+        // 살롱 링크 표시 화면으로 이동
+        const shareLink = `${window.location.origin}?salon=${result.spreadsheetId}`;
+        document.getElementById('display-salon-link').textContent = shareLink;
         showScreen('salon-code-display');
     } catch (error) {
         hideLoading();
@@ -1613,23 +1637,48 @@ async function handleSalonRegistration(e) {
     }
 }
 
-// ===== 살롱 코드 복사 =====
-function copySalonCode() {
-    const codeElement = document.getElementById('display-salon-code');
-    const code = codeElement.textContent;
+// ===== 살롱 링크 복사 =====
+function copySalonLink() {
+    const linkElement = document.getElementById('display-salon-link');
+    const link = linkElement.textContent;
 
-    navigator.clipboard.writeText(code).then(() => {
+    navigator.clipboard.writeText(link).then(() => {
         showToast(t('codeCopied'));
     }).catch(() => {
         // 폴백: 직접 선택 및 복사
         const range = document.createRange();
-        range.selectNode(codeElement);
+        range.selectNode(linkElement);
         window.getSelection().removeAllRanges();
         window.getSelection().addRange(range);
         document.execCommand('copy');
         window.getSelection().removeAllRanges();
         showToast(t('codeCopied'));
     });
+}
+
+// ===== URL 파라미터 처리 =====
+async function handleUrlParams() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const salonId = urlParams.get('salon');
+
+    if (salonId && sheetsDb) {
+        try {
+            showLoading(t('loadingData'));
+            const result = await sheetsDb.connectBySalonCode(salonId);
+            hideLoading();
+
+            if (result.success) {
+                currentSalon = result.salon;
+                updateSelectedSalonBadge();
+                showScreen('customer-login');
+                // URL에서 파라미터 제거
+                window.history.replaceState({}, '', window.location.pathname);
+            }
+        } catch (error) {
+            hideLoading();
+            console.error('URL 파라미터 처리 오류:', error);
+        }
+    }
 }
 
 // ===== 관리자 대시보드로 이동 =====
@@ -1682,5 +1731,5 @@ window.removeTierInput = removeTierInput;
 window.saveSettings = saveSettings;
 window.setLanguage = setLanguage;
 window.handleLogout = handleLogout;
-window.copySalonCode = copySalonCode;
+window.copySalonLink = copySalonLink;
 window.goToAdminDashboard = goToAdminDashboard;

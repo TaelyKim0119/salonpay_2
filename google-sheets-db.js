@@ -48,19 +48,18 @@ class GoogleSheetsDB {
 
     /**
      * 스프레드시트 ID를 미용실 코드로 변환
-     * 코드 = 스프레드시트 ID (디코딩 가능하도록)
+     * 코드 = 스프레드시트 ID (전체)
      */
     encodeToSalonCode(spreadsheetId) {
-        // 스프레드시트 ID 자체를 코드로 사용
         return spreadsheetId;
     }
 
     /**
-     * 미용실 코드에서 스프레드시트 ID 추출
+     * 미용실 공유 링크 생성
      */
-    decodeFromSalonCode(code) {
-        // 코드 = 스프레드시트 ID
-        return code;
+    getSalonShareLink(spreadsheetId) {
+        const baseUrl = window.location.origin;
+        return `${baseUrl}?salon=${spreadsheetId}`;
     }
 
     /**
@@ -250,14 +249,18 @@ class GoogleSheetsDB {
 
     /**
      * 미용실 코드로 연결 (고객용)
+     * 코드 = 스프레드시트 ID
      */
     async connectBySalonCode(code) {
-        // 코드 = 스프레드시트 ID
-        const spreadsheetId = this.decodeFromSalonCode(code.trim());
+        const spreadsheetId = code.trim();
 
         // 먼저 로컬에서 찾기
-        const saved = this.getSavedSalonByCode(code);
+        const saved = this._getSavedSalons().find(s => s.spreadsheetId === spreadsheetId);
         if (saved) {
+            this.salonInfo = saved;
+            this.spreadsheetId = saved.spreadsheetId;
+            this.salonCode = saved.code;
+            this._saveCurrentSalon();
             return { success: true, salon: saved };
         }
 
