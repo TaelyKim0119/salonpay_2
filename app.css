@@ -393,7 +393,7 @@ h4 { font-size: 20px; font-weight: 600; letter-spacing: -0.2px; }
 }
 
 .hello-character {
-    width: 150px;
+    width: 300px;
     height: auto;
     margin-bottom: var(--space-md);
 }
