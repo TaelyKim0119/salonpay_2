@@ -149,7 +149,10 @@ class GoogleSheetsDB {
         // 2. 초기 데이터 설정
         await this._initializeSpreadsheet(salonName, region);
 
-        // 3. 로컬에 저장
+        // 3. 스프레드시트 공개 설정 (고객이 읽을 수 있도록)
+        await this._makeSpreadsheetPublic(this.spreadsheetId, accessToken);
+
+        // 4. 로컬에 저장
         this.salonInfo = {
             code: this.salonCode,
             spreadsheetId: this.spreadsheetId,
@@ -218,6 +221,29 @@ class GoogleSheetsDB {
                 data: requests
             }
         });
+    }
+
+    /**
+     * 스프레드시트를 공개로 설정 (링크가 있는 모든 사용자 - 뷰어)
+     */
+    async _makeSpreadsheetPublic(spreadsheetId, accessToken) {
+        try {
+            await fetch(`https://www.googleapis.com/drive/v3/files/${spreadsheetId}/permissions`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${accessToken}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    role: 'reader',
+                    type: 'anyone'
+                })
+            });
+            console.log('스프레드시트 공개 설정 완료');
+        } catch (error) {
+            console.error('공개 설정 오류:', error);
+            // 오류가 나도 계속 진행 (수동으로 설정 가능)
+        }
     }
 
     // ========== 미용실 연결 ==========
