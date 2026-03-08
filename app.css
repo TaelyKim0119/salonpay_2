@@ -392,6 +392,12 @@ h4 { font-size: 20px; font-weight: 600; letter-spacing: -0.2px; }
     margin-top: var(--space-xl);
 }
 
+.hello-character {
+    width: 150px;
+    height: auto;
+    margin-bottom: var(--space-md);
+}
+
 .login-header h2 {
     font-size: 34px;
     font-weight: 700;
