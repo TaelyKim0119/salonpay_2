@@ -133,7 +133,9 @@ class GoogleSheetsDB {
         });
 
         if (!response.ok) {
-            throw new Error('스프레드시트 생성 실패');
+            const errorData = await response.json().catch(() => ({}));
+            console.error('스프레드시트 생성 에러:', response.status, errorData);
+            throw new Error(`스프레드시트 생성 실패: ${errorData.error?.message || response.status}`);
         }
 
         const data = await response.json();
@@ -292,7 +294,11 @@ class GoogleSheetsDB {
                 }
             );
 
-            if (!response.ok) return null;
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
+                console.error('Drive API 에러:', response.status, errorData);
+                return null;
+            }
 
             const data = await response.json();
             if (data.files && data.files.length > 0) {
