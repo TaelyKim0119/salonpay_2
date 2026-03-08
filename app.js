@@ -1604,7 +1604,7 @@ async function handleSalonRegistration(e) {
         currentSalon = result;
 
         // 살롱 코드 표시 화면으로 이동
-        document.getElementById('display-salon-code').textContent = result.salonCode;
+        document.getElementById('display-salon-code').textContent = result.code;
         showScreen('salon-code-display');
     } catch (error) {
         hideLoading();
