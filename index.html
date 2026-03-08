@@ -12,14 +12,12 @@
     <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css" />
 
     <!-- 스타일시트 -->
-    <link rel="stylesheet" href="app.css?v=20260308">
+    <link rel="stylesheet" href="app.css?v=20260308b">
 
     <!-- Google Identity Services -->
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <!-- Google API Client -->
     <script src="https://apis.google.com/js/api.js" async defer></script>
-    <!-- QR Code Generator -->
-    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
 </head>
 <body>
     <div class="app-container">
@@ -184,17 +182,19 @@
         <!-- ===== 미용실 코드 확인 화면 ===== -->
         <div id="salon-code-display" class="screen login-screen">
             <div class="login-header">
-                <h2>고객 연결 QR 코드</h2>
-                <p>이 QR 코드를 매장에 비치하세요</p>
+                <h2>미용실 연결 코드</h2>
+                <p>고객에게 이 코드를 알려주세요</p>
             </div>
 
-            <div class="qr-code-box">
-                <canvas id="qr-code-canvas"></canvas>
+            <div class="salon-code-box">
+                <div class="salon-code-value" id="display-salon-code">-</div>
+                <button class="btn-copy" onclick="copySalonCode()">코드 복사</button>
             </div>
 
-            <div class="salon-code-info">
-                <p>고객이 스마트폰으로 스캔하면 바로 연결됩니다!</p>
-                <button class="btn-secondary" onclick="downloadQRCode()">QR 코드 저장</button>
+            <div class="salon-link-box">
+                <p class="link-label">또는 이 링크 공유:</p>
+                <div class="salon-link-value" id="display-salon-link">-</div>
+                <button class="btn-copy" onclick="copySalonLink()">링크 복사</button>
             </div>
 
             <button type="button" class="btn-primary" onclick="goToAdminDashboard()">관리자 대시보드로 이동</button>
@@ -450,10 +450,10 @@
     </div>
 
     <!-- 스크립트 -->
-    <script src="config.js?v=20260308"></script>
-    <script src="auth.js?v=20260308"></script>
-    <script src="google-sheets-db.js?v=20260308"></script>
-    <script src="data/database.js?v=20260308"></script>
-    <script src="app.js?v=20260308"></script>
+    <script src="config.js?v=20260308b"></script>
+    <script src="auth.js?v=20260308b"></script>
+    <script src="google-sheets-db.js?v=20260308b"></script>
+    <script src="data/database.js?v=20260308b"></script>
+    <script src="app.js?v=20260308b"></script>
 </body>
 </html>

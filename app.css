@@ -2086,10 +2086,10 @@ h4 { font-size: 20px; font-weight: 600; letter-spacing: -0.2px; }
     line-height: 1.5;
 }
 
-/* QR Code Box */
-.qr-code-box {
+/* Salon Code Box */
+.salon-code-box {
     display: flex;
-    justify-content: center;
+    flex-direction: column;
     align-items: center;
     padding: var(--space-xl);
     background: white;
@@ -2098,10 +2098,60 @@ h4 { font-size: 20px; font-weight: 600; letter-spacing: -0.2px; }
     margin: var(--space-lg) 0;
 }
 
-.qr-code-box canvas {
+.salon-code-value {
+    font-size: 28px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    color: var(--primary);
+    background: var(--gray-100);
+    padding: var(--space-md) var(--space-lg);
+    border-radius: var(--radius-md);
+    margin-bottom: var(--space-md);
+    word-break: break-all;
+    text-align: center;
+}
+
+.salon-link-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: var(--space-lg);
+    background: var(--gray-50);
+    border-radius: var(--radius-lg);
+    margin-bottom: var(--space-lg);
+}
+
+.link-label {
+    font-size: 14px;
+    color: var(--gray-600);
+    margin-bottom: var(--space-sm);
+}
+
+.salon-link-value {
+    font-size: 12px;
+    color: var(--gray-700);
+    background: white;
+    padding: var(--space-sm) var(--space-md);
     border-radius: var(--radius-sm);
-    min-width: 250px;
-    min-height: 250px;
+    margin-bottom: var(--space-md);
+    word-break: break-all;
+    text-align: center;
+    max-width: 100%;
+}
+
+.btn-copy {
+    background: var(--primary);
+    color: white;
+    border: none;
+    padding: var(--space-sm) var(--space-lg);
+    border-radius: var(--radius-md);
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.btn-copy:active {
+    transform: scale(0.95);
 }
 
 /* Share Button in Header */

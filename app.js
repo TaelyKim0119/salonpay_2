@@ -1746,10 +1746,8 @@ async function handleSalonRegistration(e) {
         // 등록된 미용실로 설정
         currentSalon = result;
 
-        // QR 코드 생성 및 표시
-        const shareLink = `${window.location.origin}?salon=${result.spreadsheetId}`;
-        showScreen('salon-code-display');
-        generateQRCode(shareLink);
+        // 코드 표시
+        showSalonCodeScreen(result.spreadsheetId);
     } catch (error) {
         hideLoading();
         console.error('미용실 등록 오류:', error);
@@ -1807,92 +1805,46 @@ async function goToAdminDashboard() {
     await loadAdminDashboard();
 }
 
-// ===== 공유 링크 보기 (QR 코드) =====
+// ===== 미용실 코드 화면 표시 =====
+function showSalonCodeScreen(spreadsheetId) {
+    showScreen('salon-code-display');
+
+    // 짧은 코드 (마지막 8자리)
+    const shortCode = spreadsheetId.slice(-8).toUpperCase();
+
+    // 전체 링크
+    const shareLink = `${window.location.origin}?salon=${spreadsheetId}`;
+
+    document.getElementById('display-salon-code').textContent = shortCode;
+    document.getElementById('display-salon-link').textContent = shareLink;
+}
+
+// ===== 공유 링크 보기 =====
 function showShareLink() {
     if (!currentSalon || !currentSalon.spreadsheetId) {
         showToast('미용실 정보를 찾을 수 없습니다.');
         return;
     }
 
-    const shareLink = `${window.location.origin}?salon=${currentSalon.spreadsheetId}`;
-    showScreen('salon-code-display');
-    generateQRCode(shareLink);
+    showSalonCodeScreen(currentSalon.spreadsheetId);
 }
 
-// ===== QR 코드 생성 =====
-function generateQRCode(link) {
-    console.log('QR 코드 생성 시작:', link);
+// ===== 미용실 코드 복사 =====
+function copySalonCode() {
+    const codeElement = document.getElementById('display-salon-code');
+    const code = codeElement.textContent;
 
-    // 화면 전환 후 캔버스 찾기 위해 약간 대기
-    setTimeout(() => {
-        const canvas = document.getElementById('qr-code-canvas');
-
-        if (!canvas) {
-            console.error('QR 캔버스를 찾을 수 없습니다.');
-            return;
-        }
-
-        console.log('캔버스 찾음, QRCode 라이브러리 확인:', typeof QRCode);
-
-        // QRCode 라이브러리 대기
-        let attempts = 0;
-        const waitForQRCode = () => {
-            attempts++;
-            if (typeof QRCode !== 'undefined') {
-                console.log('QRCode 라이브러리 로드됨, 생성 시작');
-                QRCode.toCanvas(canvas, link, {
-                    width: 250,
-                    margin: 2,
-                    color: {
-                        dark: '#000000',
-                        light: '#FFFFFF'
-                    }
-                }, function(error) {
-                    if (error) {
-                        console.error('QR 코드 생성 오류:', error);
-                        // 폴백: 링크 직접 표시
-                        showQRFallback(link);
-                    } else {
-                        console.log('QR 코드 생성 완료');
-                    }
-                });
-            } else if (attempts < 50) {
-                // 라이브러리 로딩 대기 (최대 5초)
-                setTimeout(waitForQRCode, 100);
-            } else {
-                console.error('QRCode 라이브러리 로드 타임아웃');
-                showQRFallback(link);
-            }
-        };
-
-        waitForQRCode();
-    }, 100);
+    navigator.clipboard.writeText(code).then(() => {
+        showToast('코드가 복사되었습니다!');
+    }).catch(() => {
+        showToast('코드: ' + code);
+    });
 }
 
-// QR 코드 생성 실패 시 폴백
-function showQRFallback(link) {
-    const canvas = document.getElementById('qr-code-canvas');
-    if (canvas) {
-        const parent = canvas.parentElement;
-        parent.innerHTML = `
-            <div style="text-align: center; padding: 20px;">
-                <p style="margin-bottom: 10px; font-size: 14px; word-break: break-all;">${link}</p>
-                <button class="btn-secondary" onclick="navigator.clipboard.writeText('${link}').then(() => showToast('복사됨!'))">링크 복사</button>
-            </div>
-        `;
-    }
-}
-
-// ===== QR 코드 다운로드 =====
+// ===== 미사용 함수 (호환성) =====
 function downloadQRCode() {
-    const canvas = document.getElementById('qr-code-canvas');
-    if (canvas) {
-        const link = document.createElement('a');
-        link.download = `살롱페이_QR_${currentSalon?.salonName || 'code'}.png`;
-        link.href = canvas.toDataURL('image/png');
-        link.click();
-        showToast('QR 코드가 저장되었습니다!');
-    }
+    // QR 코드 제거됨 - 링크 복사로 대체
+    copySalonLink();
 }
 
 // ===== 유틸리티 =====
@@ -1940,7 +1892,8 @@ window.saveSettings = saveSettings;
 window.setLanguage = setLanguage;
 window.handleLogout = handleLogout;
 window.copySalonLink = copySalonLink;
+window.copySalonCode = copySalonCode;
 window.goToAdminDashboard = goToAdminDashboard;
 window.showShareLink = showShareLink;
-window.generateQRCode = generateQRCode;
+window.showSalonCodeScreen = showSalonCodeScreen;
 window.downloadQRCode = downloadQRCode;

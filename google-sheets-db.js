@@ -249,12 +249,33 @@ class GoogleSheetsDB {
 
     /**
      * 미용실 코드로 연결 (고객용)
-     * 코드 = 스프레드시트 ID
+     * 코드 = 스프레드시트 ID 또는 짧은 코드 (마지막 8자리)
      */
     async connectBySalonCode(code) {
-        const spreadsheetId = code.trim();
+        const inputCode = code.trim().toUpperCase();
+        let spreadsheetId = inputCode;
 
-        // 먼저 로컬에서 찾기
+        // 짧은 코드인 경우 (8자리 이하) 로컬에서 검색
+        if (inputCode.length <= 12) {
+            const savedSalons = this._getSavedSalons();
+            const found = savedSalons.find(s =>
+                s.spreadsheetId.slice(-8).toUpperCase() === inputCode ||
+                s.spreadsheetId.toUpperCase() === inputCode
+            );
+            if (found) {
+                this.salonInfo = found;
+                this.spreadsheetId = found.spreadsheetId;
+                this.salonCode = found.code;
+                this._saveCurrentSalon();
+                return { success: true, salon: found };
+            }
+            // 짧은 코드를 찾을 수 없으면 에러
+            if (inputCode.length <= 8) {
+                return { success: false, error: '코드를 찾을 수 없습니다. 링크를 통해 접속해주세요.' };
+            }
+        }
+
+        // 전체 스프레드시트 ID로 시도
         const saved = this._getSavedSalons().find(s => s.spreadsheetId === spreadsheetId);
         if (saved) {
             this.salonInfo = saved;
