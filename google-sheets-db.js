@@ -47,16 +47,20 @@ class GoogleSheetsDB {
     // ========== 미용실 코드 시스템 ==========
 
     /**
-     * 스프레드시트 ID를 미용실 코드로 인코딩
-     * 코드 형식: SP-XXXXXX (6자리)
+     * 스프레드시트 ID를 미용실 코드로 변환
+     * 코드 = 스프레드시트 ID (디코딩 가능하도록)
      */
     encodeToSalonCode(spreadsheetId) {
-        // Base64 인코딩 후 축약
-        const encoded = btoa(spreadsheetId)
-            .replace(/[+/=]/g, '') // URL-safe 문자만
-            .substring(0, 8)
-            .toUpperCase();
-        return `${CONFIG.CODE_PREFIX}-${encoded}`;
+        // 스프레드시트 ID 자체를 코드로 사용
+        return spreadsheetId;
+    }
+
+    /**
+     * 미용실 코드에서 스프레드시트 ID 추출
+     */
+    decodeFromSalonCode(code) {
+        // 코드 = 스프레드시트 ID
+        return code;
     }
 
     /**
@@ -222,12 +226,64 @@ class GoogleSheetsDB {
      * 미용실 코드로 연결 (고객용)
      */
     async connectBySalonCode(code) {
-        // 저장된 미용실에서 찾기
+        // 코드 = 스프레드시트 ID
+        const spreadsheetId = this.decodeFromSalonCode(code.trim());
+
+        // 먼저 로컬에서 찾기
         const saved = this.getSavedSalonByCode(code);
         if (saved) {
-            return this.connectToSalon(saved.spreadsheetId, saved);
+            return { success: true, salon: saved };
         }
-        throw new Error('미용실을 찾을 수 없습니다. 코드를 확인해주세요.');
+
+        // 스프레드시트에서 직접 정보 가져오기
+        try {
+            const salon = await this.connectToSalonPublic(spreadsheetId);
+            return { success: true, salon };
+        } catch (error) {
+            console.error('미용실 연결 오류:', error);
+            return { success: false, error: '미용실을 찾을 수 없습니다.' };
+        }
+    }
+
+    /**
+     * 스프레드시트에서 미용실 정보 가져오기 (공개 읽기)
+     */
+    async connectToSalonPublic(spreadsheetId) {
+        this.spreadsheetId = spreadsheetId;
+
+        try {
+            // gapi를 통해 공개 시트 읽기 시도
+            const response = await gapi.client.sheets.spreadsheets.values.get({
+                spreadsheetId: spreadsheetId,
+                range: `${CONFIG.SHEETS.SALON_INFO}!A2:B6`
+            });
+
+            const rows = response.result.values || [];
+            const info = {};
+            rows.forEach(row => {
+                if (row[0] && row[1]) {
+                    info[row[0]] = row[1];
+                }
+            });
+
+            this.salonCode = spreadsheetId;
+            this.salonInfo = {
+                code: spreadsheetId,
+                spreadsheetId: spreadsheetId,
+                salonName: info.salonName || '미용실',
+                region: info.region || '',
+                ownerEmail: info.ownerEmail || ''
+            };
+
+            // 로컬에 저장
+            this._saveSalonLocally(this.salonInfo);
+            this._saveCurrentSalon();
+
+            return this.salonInfo;
+        } catch (error) {
+            console.error('스프레드시트 읽기 오류:', error);
+            throw new Error('미용실을 찾을 수 없습니다.');
+        }
     }
 
     /**
