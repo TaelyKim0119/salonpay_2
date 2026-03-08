@@ -1520,6 +1520,12 @@ async function handleGoogleSignIn() {
     try {
         showLoading(t('loadingData'));
         await authManager.signIn();
+
+        // gapi에 토큰 설정
+        if (sheetsDb) {
+            sheetsDb.setAccessToken(authManager.getAccessToken());
+        }
+
         hideLoading();
         handleAdminAccess();
     } catch (error) {

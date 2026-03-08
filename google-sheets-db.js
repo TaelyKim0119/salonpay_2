@@ -35,6 +35,15 @@ class GoogleSheetsDB {
         });
     }
 
+    /**
+     * gapi에 액세스 토큰 설정
+     */
+    setAccessToken(token) {
+        if (token && gapi.client) {
+            gapi.client.setToken({ access_token: token });
+        }
+    }
+
     // ========== 미용실 코드 시스템 ==========
 
     /**
@@ -98,6 +107,9 @@ class GoogleSheetsDB {
         if (!accessToken) {
             throw new Error('로그인이 필요합니다.');
         }
+
+        // gapi에 토큰 설정
+        this.setAccessToken(accessToken);
 
         // 1. 스프레드시트 생성
         const response = await fetch('https://sheets.googleapis.com/v4/spreadsheets', {
