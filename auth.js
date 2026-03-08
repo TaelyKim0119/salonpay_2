@@ -20,13 +20,10 @@ class AuthManager {
      * Google Identity Services 초기화
      */
     async initialize() {
-        return new Promise((resolve, reject) => {
-            // Google Identity Services 로드 확인
-            if (typeof google === 'undefined' || !google.accounts) {
-                reject(new Error('Google Identity Services가 로드되지 않았습니다.'));
-                return;
-            }
+        // Google Identity Services 로드 대기
+        await this._waitForGoogleIdentityServices();
 
+        return new Promise((resolve, reject) => {
             try {
                 // OAuth2 토큰 클라이언트 초기화
                 this.tokenClient = google.accounts.oauth2.initTokenClient({
@@ -50,6 +47,27 @@ class AuthManager {
             } catch (error) {
                 reject(error);
             }
+        });
+    }
+
+    /**
+     * Google Identity Services 로드 대기
+     */
+    _waitForGoogleIdentityServices(timeout = 10000) {
+        return new Promise((resolve, reject) => {
+            const startTime = Date.now();
+
+            const checkGoogle = () => {
+                if (typeof google !== 'undefined' && google.accounts && google.accounts.oauth2) {
+                    resolve();
+                } else if (Date.now() - startTime > timeout) {
+                    reject(new Error('Google Identity Services 로드 시간 초과'));
+                } else {
+                    setTimeout(checkGoogle, 100);
+                }
+            };
+
+            checkGoogle();
         });
     }
 
