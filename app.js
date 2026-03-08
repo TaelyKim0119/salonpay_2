@@ -1626,10 +1626,10 @@ async function handleSalonRegistration(e) {
         // 등록된 미용실로 설정
         currentSalon = result;
 
-        // 살롱 링크 표시 화면으로 이동
+        // QR 코드 생성 및 표시
         const shareLink = `${window.location.origin}?salon=${result.spreadsheetId}`;
-        document.getElementById('display-salon-link').textContent = shareLink;
         showScreen('salon-code-display');
+        generateQRCode(shareLink);
     } catch (error) {
         hideLoading();
         console.error('미용실 등록 오류:', error);
@@ -1687,7 +1687,7 @@ function goToAdminDashboard() {
     loadAdminDashboard();
 }
 
-// ===== 공유 링크 보기 =====
+// ===== 공유 링크 보기 (QR 코드) =====
 function showShareLink() {
     if (!currentSalon || !currentSalon.spreadsheetId) {
         showToast('미용실 정보를 찾을 수 없습니다.');
@@ -1695,14 +1695,38 @@ function showShareLink() {
     }
 
     const shareLink = `${window.location.origin}?salon=${currentSalon.spreadsheetId}`;
+    showScreen('salon-code-display');
+    generateQRCode(shareLink);
+}
 
-    // 링크 표시 및 복사
-    if (confirm(`공유 링크:\n${shareLink}\n\n복사하시겠습니까?`)) {
-        navigator.clipboard.writeText(shareLink).then(() => {
-            showToast(t('codeCopied'));
-        }).catch(() => {
-            prompt('이 링크를 복사하세요:', shareLink);
+// ===== QR 코드 생성 =====
+function generateQRCode(link) {
+    const canvas = document.getElementById('qr-code-canvas');
+    if (canvas && typeof QRCode !== 'undefined') {
+        QRCode.toCanvas(canvas, link, {
+            width: 250,
+            margin: 2,
+            color: {
+                dark: '#000000',
+                light: '#FFFFFF'
+            }
+        }, function(error) {
+            if (error) {
+                console.error('QR 코드 생성 오류:', error);
+            }
         });
+    }
+}
+
+// ===== QR 코드 다운로드 =====
+function downloadQRCode() {
+    const canvas = document.getElementById('qr-code-canvas');
+    if (canvas) {
+        const link = document.createElement('a');
+        link.download = `살롱페이_QR_${currentSalon?.salonName || 'code'}.png`;
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+        showToast('QR 코드가 저장되었습니다!');
     }
 }
 
@@ -1753,3 +1777,5 @@ window.handleLogout = handleLogout;
 window.copySalonLink = copySalonLink;
 window.goToAdminDashboard = goToAdminDashboard;
 window.showShareLink = showShareLink;
+window.generateQRCode = generateQRCode;
+window.downloadQRCode = downloadQRCode;

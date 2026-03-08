@@ -2085,3 +2085,29 @@ h4 { font-size: 20px; font-weight: 600; letter-spacing: -0.2px; }
     color: var(--text-secondary);
     line-height: 1.5;
 }
+
+/* QR Code Box */
+.qr-code-box {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: var(--space-xl);
+    background: white;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-lg);
+    margin: var(--space-lg) 0;
+}
+
+.qr-code-box canvas {
+    border-radius: var(--radius-sm);
+}
+
+/* Share Button in Header */
+.share-btn {
+    background: none;
+    border: none;
+    font-size: 20px;
+    cursor: pointer;
+    padding: var(--space-xs);
+    margin-right: var(--space-sm);
+}
