@@ -370,6 +370,9 @@ class GoogleSheetsDB {
         const accessToken = this.authManager.getAccessToken();
         if (!accessToken) return null;
 
+        // gapi에 토큰 설정
+        this.setAccessToken(accessToken);
+
         try {
             // Drive에서 "살롱페이" 스프레드시트 검색
             const response = await fetch(

@@ -2100,6 +2100,8 @@ h4 { font-size: 20px; font-weight: 600; letter-spacing: -0.2px; }
 
 .qr-code-box canvas {
     border-radius: var(--radius-sm);
+    min-width: 250px;
+    min-height: 250px;
 }
 
 /* Share Button in Header */

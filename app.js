@@ -682,7 +682,7 @@ function showScreen(screenId) {
 }
 
 // ===== 고객 로그인 =====
-function handleCustomerLogin(e) {
+async function handleCustomerLogin(e) {
     e.preventDefault();
 
     const phoneInput = document.getElementById('phone-input');
@@ -695,12 +695,21 @@ function handleCustomerLogin(e) {
         phone = phone.replace(/(\d{3})(\d{3})(\d{4})/, '$1-$2-$3');
     }
 
-    const customer = db.getCustomerByPhone(phone);
+    let customer = null;
+    try {
+        if (isOnlineMode && sheetsDb && sheetsDb.isConnected()) {
+            customer = await sheetsDb.getCustomerByPhone(phone);
+        } else if (db) {
+            customer = db.getCustomerByPhone(phone);
+        }
+    } catch (error) {
+        console.error('고객 조회 오류:', error);
+    }
 
     if (customer) {
         currentCustomer = customer;
         showScreen('customer-dashboard');
-        loadCustomerDashboard();
+        await loadCustomerDashboard();
         phoneInput.value = '';
     } else {
         showToast(t('phoneNotFound'));
@@ -708,32 +717,59 @@ function handleCustomerLogin(e) {
 }
 
 // ===== 고객 대시보드 로드 =====
-function loadCustomerDashboard() {
+async function loadCustomerDashboard() {
     if (!currentCustomer) return;
 
-    // 최신 정보 가져오기
-    currentCustomer = db.getCustomerById(currentCustomer.id);
+    try {
+        // 최신 정보 가져오기
+        if (isOnlineMode && sheetsDb && sheetsDb.isConnected()) {
+            currentCustomer = await sheetsDb.getCustomerById(currentCustomer.id);
+        } else if (db) {
+            currentCustomer = db.getCustomerById(currentCustomer.id);
+        }
 
-    // 잔고 카드 업데이트
-    document.getElementById('customer-name-display').textContent = `${currentCustomer.name} ${t('honorific')}`;
-    document.getElementById('customer-phone-display').textContent = currentCustomer.phone;
-    document.getElementById('customer-balance').textContent = formatNumber(currentCustomer.points);
+        if (!currentCustomer) return;
 
-    // 적립금 카드
-    document.getElementById('customer-points-card').textContent = formatNumber(currentCustomer.points);
+        // 잔고 카드 업데이트
+        document.getElementById('customer-name-display').textContent = `${currentCustomer.name} ${t('honorific')}`;
+        document.getElementById('customer-phone-display').textContent = currentCustomer.phone;
+        document.getElementById('customer-balance').textContent = formatNumber(currentCustomer.points || 0);
 
-    // 쿠폰 카드
-    const activeCoupons = db.getActiveCouponsByCustomerId(currentCustomer.id);
-    document.getElementById('customer-coupons-count').textContent = activeCoupons.length;
+        // 적립금 카드
+        document.getElementById('customer-points-card').textContent = formatNumber(currentCustomer.points || 0);
 
-    // 최근 내역
-    loadCustomerHistory();
+        // 쿠폰 카드
+        let activeCoupons = [];
+        if (isOnlineMode && sheetsDb && sheetsDb.isConnected()) {
+            activeCoupons = await sheetsDb.getActiveCouponsByCustomerId(currentCustomer.id);
+        } else if (db) {
+            activeCoupons = db.getActiveCouponsByCustomerId(currentCustomer.id);
+        }
+        document.getElementById('customer-coupons-count').textContent = activeCoupons.length;
+
+        // 최근 내역
+        await loadCustomerHistory();
+    } catch (error) {
+        console.error('고객 대시보드 로드 오류:', error);
+    }
 }
 
 // ===== 고객 이용 내역 로드 =====
-function loadCustomerHistory() {
+async function loadCustomerHistory() {
     const historyList = document.getElementById('customer-history');
-    const visits = db.getVisitsByCustomerId(currentCustomer.id).slice(0, 5);
+    let visits = [];
+
+    try {
+        if (isOnlineMode && sheetsDb && sheetsDb.isConnected()) {
+            visits = await sheetsDb.getVisitsByCustomerId(currentCustomer.id);
+        } else if (db) {
+            visits = db.getVisitsByCustomerId(currentCustomer.id);
+        }
+        visits = visits.slice(0, 5);
+    } catch (error) {
+        console.error('고객 이용 내역 로드 오류:', error);
+        visits = [];
+    }
 
     if (visits.length === 0) {
         historyList.innerHTML = `
@@ -765,20 +801,26 @@ function loadCustomerHistory() {
 // ===== 관리자 대시보드 로드 =====
 async function loadAdminDashboard() {
     try {
-        let stats, customers;
+        let stats, customers, visits, settings;
 
         if (isOnlineMode && sheetsDb && sheetsDb.isConnected()) {
             // 온라인 모드: Google Sheets에서 데이터 로드
             stats = await sheetsDb.getDashboardStats();
             customers = await sheetsDb.getAllCustomers();
+            visits = await sheetsDb.getAllVisits();
+            settings = await sheetsDb.getSettings();
         } else if (db) {
             // 오프라인 모드: localStorage에서 데이터 로드
             stats = db.getDashboardStats();
             customers = db.getAllCustomers();
+            visits = db.getAllVisits();
+            settings = db.getSettings();
         } else {
             // 데이터 없음
             stats = { totalCustomers: 0, monthlyVisits: 0, totalRevenue: 0, cashRatio: 0, savedFees: 0 };
             customers = [];
+            visits = [];
+            settings = {};
         }
 
         // 통계 업데이트
@@ -801,10 +843,10 @@ async function loadAdminDashboard() {
         loadCustomerList(customers);
 
         // 생일 목록 로드
-        loadBirthdayList();
+        await loadBirthdayList();
 
         // 분석 데이터 로드
-        loadAnalysisData(stats);
+        loadAnalysisData(stats, customers, visits, settings);
     } catch (error) {
         console.error('대시보드 로드 오류:', error);
         showToast('데이터 로드 중 오류가 발생했습니다.');
@@ -841,11 +883,22 @@ function loadCustomerList(customers) {
 }
 
 // ===== 고객 검색 =====
-function searchCustomers(query) {
-    const customers = db.getAllCustomers();
+async function searchCustomers(query) {
+    let customers = [];
+    try {
+        if (isOnlineMode && sheetsDb && sheetsDb.isConnected()) {
+            customers = await sheetsDb.getAllCustomers();
+        } else if (db) {
+            customers = db.getAllCustomers();
+        }
+    } catch (error) {
+        console.error('고객 검색 오류:', error);
+        customers = [];
+    }
+
     const filtered = customers.filter(c =>
-        c.name.includes(query) ||
-        c.phone.includes(query)
+        (c.name && c.name.includes(query)) ||
+        (c.phone && c.phone.includes(query))
     );
     loadCustomerList(filtered);
 }
@@ -866,9 +919,20 @@ function switchTab(tabId) {
 }
 
 // ===== 생일 목록 로드 =====
-function loadBirthdayList() {
+async function loadBirthdayList() {
     const listContainer = document.getElementById('birthday-list');
-    const customers = db.getAllCustomers();
+
+    let customers = [];
+    try {
+        if (isOnlineMode && sheetsDb && sheetsDb.isConnected()) {
+            customers = await sheetsDb.getAllCustomers();
+        } else if (db) {
+            customers = db.getAllCustomers();
+        }
+    } catch (error) {
+        console.error('생일 목록 로드 오류:', error);
+        customers = [];
+    }
     const today = new Date();
     const thisMonth = String(today.getMonth() + 1).padStart(2, '0');
     const nextMonth = String((today.getMonth() + 2) % 12 || 12).padStart(2, '0');
@@ -916,15 +980,14 @@ function loadBirthdayList() {
 }
 
 // ===== 분석 데이터 로드 =====
-function loadAnalysisData(stats) {
+function loadAnalysisData(stats, customers = [], visits = [], settings = {}) {
     const container = document.getElementById('analysis-content');
-    const customers = db.getAllCustomers();
 
     // 총 적립금
-    const totalPoints = customers.reduce((sum, c) => sum + c.points, 0);
+    const totalPoints = customers.reduce((sum, c) => sum + (c.points || 0), 0);
 
     // VIP 고객 (방문 10회 이상)
-    const vipCustomers = customers.filter(c => c.visitCount >= 10);
+    const vipCustomers = customers.filter(c => (c.visitCount || 0) >= 10);
 
     container.innerHTML = `
         <div class="analysis-card">
@@ -957,21 +1020,20 @@ function loadAnalysisData(stats) {
 
     // 차트 렌더링
     setTimeout(() => {
-        renderRevenueChart();
-        renderServicePieChart();
-        renderPaymentPieChart();
+        renderRevenueChart(visits);
+        renderServicePieChart(visits);
+        renderPaymentPieChart(visits, settings);
     }, 100);
 }
 
 // ===== 차트 렌더링 함수 =====
 
 // 월별 매출 시계열 차트
-function renderRevenueChart() {
+function renderRevenueChart(visits = []) {
     const canvas = document.getElementById('revenue-chart');
     if (!canvas) return;
 
     const ctx = canvas.getContext('2d');
-    const visits = db.getAllVisits();
 
     // 최근 12개월 데이터 집계
     const monthlyData = {};
@@ -1075,12 +1137,11 @@ function renderRevenueChart() {
 }
 
 // 서비스별 매출 파이 차트
-function renderServicePieChart() {
+function renderServicePieChart(visits = []) {
     const canvas = document.getElementById('service-pie-chart');
     if (!canvas) return;
 
     const ctx = canvas.getContext('2d');
-    const visits = db.getAllVisits();
 
     // 서비스별 매출 집계
     const serviceData = {};
@@ -1160,13 +1221,11 @@ function renderServicePieChart() {
 }
 
 // 현금 결제 구간별 파이 차트
-function renderPaymentPieChart() {
+function renderPaymentPieChart(visits = [], settings = {}) {
     const canvas = document.getElementById('payment-pie-chart');
     if (!canvas) return;
 
     const ctx = canvas.getContext('2d');
-    const visits = db.getAllVisits();
-    const settings = db.getSettings();
     const tiers = settings.cashTiers || [300000, 500000, 1000000];
 
     // 현금 결제 건수별 구간 집계
@@ -1300,8 +1359,25 @@ function formatCompactNumber(num) {
 }
 
 // ===== 고객 상세 보기 =====
-function showCustomerDetail(customerId) {
-    const customer = db.getCustomerById(customerId);
+async function showCustomerDetail(customerId) {
+    let customer = null;
+    let coupons = [];
+    let visits = [];
+
+    try {
+        if (isOnlineMode && sheetsDb && sheetsDb.isConnected()) {
+            customer = await sheetsDb.getCustomerById(customerId);
+            coupons = await sheetsDb.getActiveCouponsByCustomerId(customerId);
+            visits = await sheetsDb.getVisitsByCustomerId(customerId);
+        } else if (db) {
+            customer = db.getCustomerById(customerId);
+            coupons = db.getActiveCouponsByCustomerId(customerId);
+            visits = db.getVisitsByCustomerId(customerId);
+        }
+    } catch (error) {
+        console.error('고객 상세 정보 로드 오류:', error);
+    }
+
     if (!customer) return;
 
     // 헤더 정보
@@ -1310,17 +1386,15 @@ function showCustomerDetail(customerId) {
     document.getElementById('detail-phone').textContent = customer.phone;
 
     // 통계
-    document.getElementById('detail-points').textContent = formatNumber(customer.points);
-    document.getElementById('detail-visits').textContent = customer.visitCount;
-
-    const coupons = db.getActiveCouponsByCustomerId(customerId);
+    document.getElementById('detail-points').textContent = formatNumber(customer.points || 0);
+    document.getElementById('detail-visits').textContent = customer.visitCount || 0;
     document.getElementById('detail-coupons').textContent = coupons.length;
 
     // 메모
     document.getElementById('detail-memo').textContent = customer.memo || t('noMemo');
 
     // 방문 기록
-    const visits = db.getVisitsByCustomerId(customerId).slice(0, 10);
+    visits = visits.slice(0, 10);
     const historyContainer = document.getElementById('detail-history');
 
     if (visits.length === 0) {
@@ -1341,8 +1415,8 @@ function showCustomerDetail(customerId) {
                     <div class="history-date">${formatDate(visit.date)}</div>
                 </div>
                 <div class="history-amount">
-                    <div class="history-points earn">+${formatNumber(visit.pointsEarned)}P</div>
-                    <div class="history-price">${formatNumber(visit.finalAmount)}${t('won')}</div>
+                    <div class="history-points earn">+${formatNumber(visit.pointsEarned || 0)}P</div>
+                    <div class="history-price">${formatNumber(visit.finalAmount || 0)}${t('won')}</div>
                 </div>
             </div>
         `).join('');
@@ -1404,10 +1478,10 @@ function showToast(message) {
 }
 
 // ===== 설정 관련 함수 =====
-function openSettings() {
+async function openSettings() {
     const modal = document.getElementById('settings-modal');
     modal.classList.add('active');
-    loadTierInputs();
+    await loadTierInputs();
 }
 
 function closeSettings() {
@@ -1415,9 +1489,21 @@ function closeSettings() {
     modal.classList.remove('active');
 }
 
-function loadTierInputs() {
+async function loadTierInputs() {
     const container = document.getElementById('tier-inputs');
-    const settings = db.getSettings();
+    let settings = {};
+
+    try {
+        if (isOnlineMode && sheetsDb && sheetsDb.isConnected()) {
+            settings = await sheetsDb.getSettings();
+        } else if (db) {
+            settings = db.getSettings();
+        }
+    } catch (error) {
+        console.error('설정 로드 오류:', error);
+        settings = {};
+    }
+
     const tiers = settings.cashTiers || [300000, 500000, 1000000];
 
     container.innerHTML = tiers.map((tier, i) => `
@@ -1462,7 +1548,7 @@ function updateRemoveButtons() {
     });
 }
 
-function saveSettings() {
+async function saveSettings() {
     const inputs = document.querySelectorAll('#tier-inputs .tier-value');
     const tiers = Array.from(inputs)
         .map(input => parseInt(input.value) * 10000)
@@ -1474,15 +1560,27 @@ function saveSettings() {
         return;
     }
 
-    const settings = db.getSettings();
-    settings.cashTiers = tiers;
-    db.updateSettings(settings);
+    try {
+        let settings = {};
+        if (isOnlineMode && sheetsDb && sheetsDb.isConnected()) {
+            settings = await sheetsDb.getSettings();
+            settings.cashTiers = tiers;
+            await sheetsDb.updateSettings(settings);
+        } else if (db) {
+            settings = db.getSettings();
+            settings.cashTiers = tiers;
+            db.updateSettings(settings);
+        }
 
-    closeSettings();
-    showToast(t('settingsSaved'));
+        closeSettings();
+        showToast(t('settingsSaved'));
 
-    // 차트 새로고침
-    renderPaymentPieChart();
+        // 대시보드 새로고침
+        await loadAdminDashboard();
+    } catch (error) {
+        console.error('설정 저장 오류:', error);
+        showToast('설정 저장 중 오류가 발생했습니다.');
+    }
 }
 
 // ===== 미용실 코드 연결 (온라인 모드) =====
@@ -1562,6 +1660,19 @@ async function handleAdminAccess() {
     try {
         showLoading(t('loadingData'));
 
+        // 먼저 로컬에 저장된 미용실 정보 확인
+        const savedSalon = sheetsDb.restoreCurrentSalon();
+
+        if (savedSalon) {
+            // 로컬에 저장된 미용실 있음
+            currentSalon = savedSalon;
+            hideLoading();
+            showToast(t('existingSalonFound'));
+            showScreen('admin');
+            await loadAdminDashboard();
+            return;
+        }
+
         // Google Drive에서 기존 미용실 스프레드시트 검색
         const result = await sheetsDb.findMySalon();
 
@@ -1572,7 +1683,7 @@ async function handleAdminAccess() {
             currentSalon = result;
             showToast(t('existingSalonFound'));
             showScreen('admin');
-            loadAdminDashboard();
+            await loadAdminDashboard();
         } else {
             // 미용실 없음 - 등록 화면으로
             showScreen('admin-register');
@@ -1580,7 +1691,16 @@ async function handleAdminAccess() {
     } catch (error) {
         hideLoading();
         console.error('관리자 접근 오류:', error);
-        showScreen('admin-register');
+
+        // 에러 발생 시에도 로컬 저장된 미용실 확인
+        const savedSalon = sheetsDb.restoreCurrentSalon();
+        if (savedSalon) {
+            currentSalon = savedSalon;
+            showScreen('admin');
+            await loadAdminDashboard();
+        } else {
+            showScreen('admin-register');
+        }
     }
 }
 
@@ -1682,9 +1802,9 @@ async function handleUrlParams() {
 }
 
 // ===== 관리자 대시보드로 이동 =====
-function goToAdminDashboard() {
+async function goToAdminDashboard() {
     showScreen('admin');
-    loadAdminDashboard();
+    await loadAdminDashboard();
 }
 
 // ===== 공유 링크 보기 (QR 코드) =====
@@ -1701,20 +1821,65 @@ function showShareLink() {
 
 // ===== QR 코드 생성 =====
 function generateQRCode(link) {
+    console.log('QR 코드 생성 시작:', link);
+
+    // 화면 전환 후 캔버스 찾기 위해 약간 대기
+    setTimeout(() => {
+        const canvas = document.getElementById('qr-code-canvas');
+
+        if (!canvas) {
+            console.error('QR 캔버스를 찾을 수 없습니다.');
+            return;
+        }
+
+        console.log('캔버스 찾음, QRCode 라이브러리 확인:', typeof QRCode);
+
+        // QRCode 라이브러리 대기
+        let attempts = 0;
+        const waitForQRCode = () => {
+            attempts++;
+            if (typeof QRCode !== 'undefined') {
+                console.log('QRCode 라이브러리 로드됨, 생성 시작');
+                QRCode.toCanvas(canvas, link, {
+                    width: 250,
+                    margin: 2,
+                    color: {
+                        dark: '#000000',
+                        light: '#FFFFFF'
+                    }
+                }, function(error) {
+                    if (error) {
+                        console.error('QR 코드 생성 오류:', error);
+                        // 폴백: 링크 직접 표시
+                        showQRFallback(link);
+                    } else {
+                        console.log('QR 코드 생성 완료');
+                    }
+                });
+            } else if (attempts < 50) {
+                // 라이브러리 로딩 대기 (최대 5초)
+                setTimeout(waitForQRCode, 100);
+            } else {
+                console.error('QRCode 라이브러리 로드 타임아웃');
+                showQRFallback(link);
+            }
+        };
+
+        waitForQRCode();
+    }, 100);
+}
+
+// QR 코드 생성 실패 시 폴백
+function showQRFallback(link) {
     const canvas = document.getElementById('qr-code-canvas');
-    if (canvas && typeof QRCode !== 'undefined') {
-        QRCode.toCanvas(canvas, link, {
-            width: 250,
-            margin: 2,
-            color: {
-                dark: '#000000',
-                light: '#FFFFFF'
-            }
-        }, function(error) {
-            if (error) {
-                console.error('QR 코드 생성 오류:', error);
-            }
-        });
+    if (canvas) {
+        const parent = canvas.parentElement;
+        parent.innerHTML = `
+            <div style="text-align: center; padding: 20px;">
+                <p style="margin-bottom: 10px; font-size: 14px; word-break: break-all;">${link}</p>
+                <button class="btn-secondary" onclick="navigator.clipboard.writeText('${link}').then(() => showToast('복사됨!'))">링크 복사</button>
+            </div>
+        `;
     }
 }
 
